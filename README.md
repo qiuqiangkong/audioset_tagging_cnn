@@ -1,1 +1,1 @@
-# audioset_tagging_large_cnn
+# audioset_tagging_cnn_transfer
