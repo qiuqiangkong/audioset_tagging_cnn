@@ -1,0 +1,333 @@
+import numpy as np
+import argparse
+import csv
+import os
+import glob
+import datetime
+import time
+import logging
+import h5py
+import librosa
+
+from utilities import (create_folder, get_filename, create_logging, 
+    pad_or_truncate, get_sub_filepaths)
+import config
+
+
+def split_unbalanced_csv_to_partial_csvs(args):
+    """Split unbalanced csv and write out to to part csvs. Each part csv 
+    contains up to 50000 ids. 
+    """
+    
+    unbalanced_csv_path = args.unbalanced_csv
+    unbalanced_partial_csvs_dir = args.unbalanced_partial_csvs_dir
+    
+    create_folder(unbalanced_partial_csvs_dir)
+    
+    with open(unbalanced_csv_path, 'r') as f:
+        lines = f.readlines()
+
+    lines = lines[3:]   # Remove head info
+    audios_num_per_file = 50000
+    
+    files_num = int(np.ceil(len(lines) / float(audios_num_per_file)))
+    
+    for r in range(files_num):
+        lines_per_file = lines[r * audios_num_per_file : 
+            (r + 1) * audios_num_per_file]
+        
+        out_csv_path = os.path.join(unbalanced_partial_csvs_dir, 
+            'unbalanced_train_segments_part{:02d}.csv'.format(r))
+
+        with open(out_csv_path, 'w') as f:
+            f.write('empty\n')
+            f.write('empty\n')
+            f.write('empty\n')
+            for line in lines_per_file:
+                f.write(line)
+        
+        print('Write out csv to {}'.format(out_csv_path))
+
+
+def download_wavs(args):
+    """Download videos and extract audio in wav format.
+    """
+
+    # Paths
+    csv_path = args.csv_path
+    audios_dir = args.audios_dir
+    mini_data = args.mini_data
+    
+    if mini_data:
+        logs_dir = '_logs/download_dataset/{}'.format(get_filename(csv_path))
+    else:
+        logs_dir = '_logs/download_dataset_minidata/{}'.format(get_filename(csv_path))
+    
+    create_folder(audios_dir)
+    create_folder(logs_dir)
+    create_logging(logs_dir, filemode='w')
+    logging.info('Download log is saved to {}'.format(logs_dir))
+
+    # Read csv
+    with open(csv_path, 'r') as f:
+        lines = f.readlines()
+    
+    lines = lines[3:]   # Remove csv head info
+
+    if mini_data:
+        lines = lines[0 : 10]   # Download small data for debug
+    
+    download_time = time.time()
+
+    # Download
+    for (n, line) in enumerate(lines):
+        
+        items = line.split(', ')
+        audio_id = items[0]
+        start_time = float(items[1])
+        end_time = float(items[2])
+        duration = end_time - start_time
+        
+        logging.info('{} {} start_time: {:.1f}, end_time: {:.1f}'.format(
+            n, audio_id, start_time, end_time))
+        
+        # Download full video of whatever format
+        video_name = os.path.join(audios_dir, '_Y{}.%(ext)s'.format(audio_id))
+        os.system("youtube-dl --quiet -o '{}' -x https://www.youtube.com/watch?v={}"\
+            .format(video_name, audio_id))
+
+        video_paths = glob.glob(os.path.join(audios_dir, '_Y' + audio_id + '.*'))
+
+        # If download successful
+        if len(video_paths) > 0:
+            video_path = video_paths[0]     # Choose one video
+
+            # Add 'Y' to the head because some video ids are started with '-'
+            # which will cause problem
+            audio_path = os.path.join(audios_dir, 'Y' + audio_id + '.wav')
+
+            # Extract audio in wav format
+            os.system("ffmpeg -loglevel panic -i {} -ac 1 -ar 32000 -ss {} -t 00:00:{} {} "\
+                .format(video_path, 
+                str(datetime.timedelta(seconds=start_time)), duration, 
+                audio_path))
+            
+            # Remove downloaded video
+            os.system("rm {}".format(video_path))
+            
+            logging.info("Download and convert to {}".format(audio_path))
+                
+    logging.info('Download finished! Time spent: {:.3f} s'.format(
+        time.time() - download_time))
+
+    logging.info('Logs can be viewed in {}'.format(logs_dir))
+          
+
+def read_metadata(csv_path):
+
+    classes_num = config.classes_num
+    id_to_ix = config.id_to_ix
+
+    with open(csv_path, 'r') as fr:
+        lines = fr.readlines()
+        lines = lines[3:]   # Remove heads
+
+    audios_num = len(lines)
+    targets = np.zeros((audios_num, classes_num), dtype=np.bool)
+    audio_names = []
+ 
+    for n, line in enumerate(lines):
+        items = line.split(', ')
+        audio_name = 'Y{}.wav'.format(items[0])   # Audios are started with an extra 'Y' when downloading
+        label_ids = items[3].split('"')[1].split(',')
+
+        audio_names.append(audio_name)
+
+        # Target
+        for id in label_ids:
+            ix = id_to_ix[id]
+            targets[n, ix] = 1
+    
+    meta_dict = {'audio_name': np.array(audio_names), 'target': targets}
+    return meta_dict
+
+
+def pack_waveforms_to_hdf5(args):
+    """Pack waveforms to a single hdf5 file.
+    """
+
+    # Arguments & parameters
+    audios_dir = args.audios_dir
+    csv_path = args.csv_path
+    waveform_hdf5_path = args.waveform_hdf5_path
+    target_hdf5_path = args.target_hdf5_path
+    mini_data = args.mini_data
+
+    audio_length = config.audio_length
+    classes_num = config.classes_num
+    sample_rate = config.sample_rate
+
+    # Paths
+    if mini_data:
+        prefix = 'mini_'
+        waveform_hdf5_path += '.mini'
+        target_hdf5_path += '.mini'
+    else:
+        prefix = ''
+
+    create_folder(os.path.dirname(waveform_hdf5_path))
+    create_folder(os.path.dirname(target_hdf5_path))
+
+    logs_dir = '_logs/pack_waveforms_to_hdf5/{}{}'.format(prefix, get_filename(csv_path))
+    create_folder(logs_dir)
+    create_logging(logs_dir, filemode='w')
+    logging.info('Write logs to {}'.format(logs_dir))
+    
+    # Read csv file
+    meta_dict = read_metadata(csv_path)
+
+    if mini_data:
+        mini_num = 10
+        for key in meta_dict.keys():
+            meta_dict[key] = meta_dict[key][0 : mini_num]
+
+    audios_num = len(meta_dict['audio_name'])
+
+    # Pack waveform to hdf5
+    total_time = time.time()
+
+    with h5py.File(waveform_hdf5_path, 'w') as hf:
+        hf.create_dataset('audio_name', shape=((audios_num,)), dtype='S20')
+        hf.create_dataset('waveform', shape=((audios_num, audio_length)), dtype=np.float32)
+        hf.create_dataset('target', shape=((audios_num, classes_num)), dtype=np.bool)
+        hf.attrs.create('sample_rate', data=sample_rate, dtype=np.int32)
+
+        # Read audio
+        for n in range(audios_num):
+            audio_path = os.path.join(audios_dir, meta_dict['audio_name'][n])
+
+            if os.path.isfile(audio_path):
+                logging.info('{} {}'.format(n, audio_path))
+                (audio, _) = librosa.core.load(audio_path, sr=sample_rate, mono=True)
+                audio = pad_or_truncate(audio, audio_length)
+
+                hf['audio_name'][n] = meta_dict['audio_name'][n].encode()
+                hf['waveform'][n] = audio
+                hf['target'][n] = meta_dict['target'][n]
+            else:
+                logging.info('{} File does not exist! {}'.format(n, audio_path))
+
+        # Pack target to hdf5
+        hdf5_name = target_hdf5_path.split('/')[-1]
+
+        with h5py.File(target_hdf5_path, 'w') as target_hf:
+            target_hf.create_dataset('audio_name', data=hf['audio_name'][:], dtype='S20')
+            target_hf.create_dataset('hdf5_name', data=[hdf5_name.encode()] * audios_num, dtype='S40')
+            target_hf.create_dataset('index_in_hdf5', data=np.arange(audios_num), dtype=np.int32)
+            target_hf.create_dataset('target', data=hf['target'][:], dtype=np.bool)
+
+    logging.info('Write to {}'.format(waveform_hdf5_path))
+    logging.info('Write to {}'.format(target_hdf5_path))
+    logging.info('Pack hdf5 time: {:.3f}'.format(time.time() - total_time))
+          
+
+def combine_full_target(args):
+
+    # Arguments & parameters
+    target_hdf5s_dir = args.target_hdf5s_dir
+    full_hdf5_path = args.full_hdf5_path
+
+    classes_num = config.classes_num
+
+    # Paths
+    paths = get_sub_filepaths(target_hdf5s_dir)
+    paths = [path for path in paths if (
+        'train' in path and 'full_train' not in path and 'mini' not in path)]
+
+    print('Total {} hdf5 to combine.'.format(len(paths)))
+
+    with h5py.File(full_hdf5_path, 'w') as full_hf:
+        full_hf.create_dataset(
+            name='audio_name', 
+            shape=(0,), 
+            maxshape=(None,), 
+            dtype='S20')
+        
+        full_hf.create_dataset(
+            name='target', 
+            shape=(0, classes_num), 
+            maxshape=(None, classes_num), 
+            dtype=np.bool)
+
+        full_hf.create_dataset(
+            name='hdf5_name', 
+            shape=(0,), 
+            maxshape=(None,), 
+            dtype='S40')
+
+        full_hf.create_dataset(
+            name='index_in_hdf5', 
+            shape=(0,), 
+            maxshape=(None,), 
+            dtype=np.int32)
+
+        for path in paths:
+            with h5py.File(path, 'r') as part_hf:
+                print(path)
+                n = len(full_hf['audio_name'][:])
+                new_n = n + len(part_hf['audio_name'][:])
+
+                full_hf['audio_name'].resize((new_n,))
+                full_hf['audio_name'][n : new_n] = part_hf['audio_name'][:]
+
+                full_hf['target'].resize((new_n, classes_num))
+                full_hf['target'][n : new_n] = part_hf['target'][:]
+
+                full_hf['hdf5_name'].resize((new_n,))
+                full_hf['hdf5_name'][n : new_n] = part_hf['hdf5_name'][:]
+
+                full_hf['index_in_hdf5'].resize((new_n,))
+                full_hf['index_in_hdf5'][n : new_n] = part_hf['index_in_hdf5'][:]
+                
+    print('Write combined full hdf5 to {}'.format(full_hdf5_path))
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='mode')
+
+    parser_split = subparsers.add_parser('split_unbalanced_csv_to_partial_csvs')
+    parser_split.add_argument('--unbalanced_csv', type=str, required=True, help='Path of unbalanced_csv file to read.')
+    parser_split.add_argument('--unbalanced_partial_csvs_dir', type=str, required=True, help='Directory to save out split unbalanced partial csv.')
+
+    parser_download_wavs = subparsers.add_parser('download_wavs')
+    parser_download_wavs.add_argument('--csv_path', type=str, required=True, help='Path of csv file containing audio info to be downloaded.')
+    parser_download_wavs.add_argument('--audios_dir', type=str, required=True, help='Directory to save out downloaded audio.')
+    parser_download_wavs.add_argument('--mini_data', action='store_true', default=True, help='Set true to only download 10 audios for debug.')
+
+    parser_pack_wavs = subparsers.add_parser('pack_waveforms_to_hdf5')
+    parser_pack_wavs.add_argument('--csv_path', type=str, required=True, help='Path of csv file containing audio info to be downloaded.')
+    parser_pack_wavs.add_argument('--audios_dir', type=str, required=True, help='Directory to save out downloaded audio.')
+    parser_pack_wavs.add_argument('--waveform_hdf5_path', type=str, required=True, help='Path to save out packed waveforms hdf5.')
+    parser_pack_wavs.add_argument('--target_hdf5_path', type=str, required=True, help='Path to save out packed targets hdf5.')
+    parser_pack_wavs.add_argument('--mini_data', action='store_true', default=False, help='Set true to only download 10 audios for debug.')
+
+    parser_combine_full_target = subparsers.add_parser('combine_full_target')
+    parser_combine_full_target.add_argument('--target_hdf5s_dir', type=str, required=True, help='Directory containing targets hdf5 to be combined.')
+    parser_combine_full_target.add_argument('--full_hdf5_path', type=str, required=True, help='Path to write out combined full hdf5 file.')
+
+    args = parser.parse_args()
+    
+    if args.mode == 'split_unbalanced_csv_to_partial_csvs':
+        split_unbalanced_csv_to_partial_csvs(args)
+    
+    elif args.mode == 'download_wavs':
+        download_wavs(args)
+
+    elif args.mode == 'pack_waveforms_to_hdf5':
+        pack_waveforms_to_hdf5(args)
+
+    elif args.mode == 'combine_full_target':
+        combine_full_target(args)
+
+    else:
+        raise Exception('Incorrect arguments!')
