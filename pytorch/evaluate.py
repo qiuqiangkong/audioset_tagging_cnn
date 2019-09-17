@@ -17,18 +17,17 @@ import config
 
 
 class Evaluator(object):
-    def __init__(self, model, generator, data_preprocessor, cuda=True):
+    def __init__(self, model, generator, cuda=True):
         self.model = model
         self.generator = generator
-        self.data_preprocessor = data_preprocessor
         
     def evaluate(self):
 
         # Forward
-        output_dict = forward(model=self.model, 
-                    generator=self.generator, 
-                    data_preprocessor_func=self.data_preprocessor.transform_test_data, 
-                    return_target=True)
+        output_dict = forward(
+            model=self.model, 
+            generator=self.generator, 
+            return_target=True)
 
         clipwise_output = output_dict['clipwise_output']    # (audios_num, classes_num)
         target = output_dict['target']    # (audios_num, classes_num)

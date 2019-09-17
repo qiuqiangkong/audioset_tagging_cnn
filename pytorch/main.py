@@ -21,18 +21,16 @@ import torch.utils.data
  
 from utilities import (create_folder, get_filename, create_logging, 
     StatisticsContainer)
-from models import Cnn13_specaug_debug
+from models import *
+from models2 import *
+from models3 import *
 from pytorch_utils import (move_data_to_device, count_parameters, count_flops, 
     do_mixup)
 from data_generator import (AudioSetDataset, BalancedSampler, BalancedSamplerMixup, 
-    EvaluateSampler, DataPreprocessor)
+    EvaluateSampler, Collator)
 from evaluate import Evaluator
 import config
 from losses import get_loss_func
-
-
-def collate_fn(list_of_data_dict):
-    return list_of_data_dict
 
 
 def train(args):
@@ -115,7 +113,7 @@ def train(args):
         'data_type={}'.format(data_type), model_type, 
         'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
         'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
-        'statistics.pickle')
+        'statistics.pkl')
     create_folder(os.path.dirname(statistics_path))
 
     logs_dir = os.path.join(workspace, 'logs', filename, 
@@ -150,15 +148,21 @@ def train(args):
     # waveform and target of audio
     train_dataset = AudioSetDataset(
         target_hdf5_path=train_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir)
+        waveform_hdf5s_dir=waveform_hdf5s_dir, 
+        audio_length=audio_length, 
+        classes_num=classes_num)
 
     bal_dataset = AudioSetDataset(
         target_hdf5_path=eval_train_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir)
+        waveform_hdf5s_dir=waveform_hdf5s_dir, 
+        audio_length=audio_length, 
+        classes_num=classes_num)
 
     test_dataset = AudioSetDataset(
         target_hdf5_path=eval_test_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir)
+        waveform_hdf5s_dir=waveform_hdf5s_dir, 
+        audio_length=audio_length, 
+        classes_num=classes_num)
 
     # Sampler
     if balanced == 'balanced':
@@ -167,45 +171,43 @@ def train(args):
                 target_hdf5_path=train_targets_hdf5_path, 
                 black_list_csv=black_list_csv, batch_size=batch_size, 
                 start_mix_epoch=1)
+            train_collector = Collator(mixup_alpha=1.)
+            assert batch_size % torch.cuda.device_count() == 0, 'To let mixup working properly this must be satisfied.'
         else:
             train_sampler = BalancedSampler(
                 target_hdf5_path=train_targets_hdf5_path, 
                 black_list_csv=black_list_csv, batch_size=batch_size)
+            train_collector = Collator(mixup_alpha=None)
     
     bal_sampler = EvaluateSampler(dataset_size=len(bal_dataset), 
         batch_size=batch_size)
 
     test_sampler = EvaluateSampler(dataset_size=len(test_dataset), 
         batch_size=batch_size)
+
+    eval_collector = Collator(mixup_alpha=None)
     
     # Data loader
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
-        batch_sampler=train_sampler, collate_fn=collate_fn, 
+        batch_sampler=train_sampler, collate_fn=train_collector, 
         num_workers=num_workers, pin_memory=True)
-
+    
     bal_loader = torch.utils.data.DataLoader(dataset=bal_dataset, 
-        batch_sampler=bal_sampler, collate_fn=collate_fn, 
+        batch_sampler=bal_sampler, collate_fn=eval_collector, 
         num_workers=num_workers, pin_memory=True)
 
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
-        batch_sampler=test_sampler, collate_fn=collate_fn, 
+        batch_sampler=test_sampler, collate_fn=eval_collector, 
         num_workers=num_workers, pin_memory=True)
 
-    if 'mixup' in augmentation:
-        data_preprocessor = DataPreprocessor(mixup_alpha=1.)
-    else:
-        data_preprocessor = DataPreprocessor(mixup_alpha=None)
-    
     # Evaluator
     bal_evaluator = Evaluator(
         model=model, 
-        generator=bal_loader, 
-        data_preprocessor=data_preprocessor)
+        generator=bal_loader)
     
     test_evaluator = Evaluator(
         model=model, 
-        generator=test_loader, 
-        data_preprocessor=data_preprocessor)
+        generator=test_loader)
         
     # Statistics
     statistics_container = StatisticsContainer(statistics_path)
@@ -245,7 +247,8 @@ def train(args):
     
     t_ = time.time()
     
-    for batch_list_data_dict in train_loader:
+    for batch_data_dict in train_loader:
+        
         """batch_list_data_dict: 
             [{'audio_name': 'YtwJdQzi7x7Q.wav', 'waveform': (audio_length,), 'target': (classes_num)}, 
             ...]"""
@@ -291,11 +294,8 @@ def train(args):
                 
             torch.save(checkpoint, checkpoint_path)
             logging.info('Model saved to {}'.format(checkpoint_path))
-        
-        # Preprocess data
-        batch_data_dict = data_preprocessor.transform_train_data(
-            batch_list_data_dict)
 
+        # Move data to device
         for key in batch_data_dict.keys():
             batch_data_dict[key] = move_data_to_device(batch_data_dict[key], device)
         

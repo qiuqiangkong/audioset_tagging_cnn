@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import torch
 import torch.nn as nn
 
@@ -128,9 +129,8 @@ def count_flops(model, audio_length):
 
 
 def do_mixup(x, mixup_lambda):
-    N = x.shape[0]
-    out = (x[0 : N // 2].transpose(0, -1) * mixup_lambda[0 : N // 2]) + \
-        (x[N // 2 :].transpose(0, -1) * mixup_lambda[N // 2 :])
+    out = x[0::2].transpose(0, -1) * mixup_lambda[0::2] + \
+        x[1::2].transpose(0, -1) * mixup_lambda[1::2]
     return out.transpose(0, -1)
     
 
@@ -141,7 +141,7 @@ def append_to_dict(dict, key, value):
         dict[key] = [value]
 
 
-def forward(model, generator, data_preprocessor_func, return_input=False, 
+def forward(model, generator, return_input=False, 
     return_target=False):
     '''Forward data to model in mini-batch. 
     
@@ -155,12 +155,10 @@ def forward(model, generator, data_preprocessor_func, return_input=False,
     '''
     output_dict = {}
     device = next(model.parameters()).device
-    
+    t1 = time.time()
     # Evaluate on mini-batch
-    for n, batch_list_data_dict in enumerate(generator):
-        
-        batch_data_dict = data_preprocessor_func(batch_list_data_dict)
-
+    for n, batch_data_dict in enumerate(generator):
+        print(n)
         # Predict
         batch_waveform = move_data_to_device(batch_data_dict['waveform'], device)
         
@@ -183,6 +181,10 @@ def forward(model, generator, data_preprocessor_func, return_input=False,
         if return_target:
             if 'target' in batch_data_dict.keys():
                 append_to_dict(output_dict, 'target', batch_data_dict['target'])
+
+        if n % 10 == 0:
+            print(time.time() - t1)
+            t1 = time.time()
 
     for key in output_dict.keys():
         output_dict[key] = np.concatenate(output_dict[key], axis=0)

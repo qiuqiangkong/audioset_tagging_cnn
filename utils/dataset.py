@@ -10,7 +10,7 @@ import h5py
 import librosa
 
 from utilities import (create_folder, get_filename, create_logging, 
-    pad_or_truncate, get_sub_filepaths)
+    float32_to_int16, pad_or_truncate, get_sub_filepaths)
 import config
 
 
@@ -198,7 +198,7 @@ def pack_waveforms_to_hdf5(args):
 
     with h5py.File(waveform_hdf5_path, 'w') as hf:
         hf.create_dataset('audio_name', shape=((audios_num,)), dtype='S20')
-        hf.create_dataset('waveform', shape=((audios_num, audio_length)), dtype=np.float32)
+        hf.create_dataset('waveform', shape=((audios_num, audio_length)), dtype=np.int16)
         hf.create_dataset('target', shape=((audios_num, classes_num)), dtype=np.bool)
         hf.attrs.create('sample_rate', data=sample_rate, dtype=np.int32)
 
@@ -212,7 +212,7 @@ def pack_waveforms_to_hdf5(args):
                 audio = pad_or_truncate(audio, audio_length)
 
                 hf['audio_name'][n] = meta_dict['audio_name'][n].encode()
-                hf['waveform'][n] = audio
+                hf['waveform'][n] = float32_to_int16(audio)
                 hf['target'][n] = meta_dict['target'][n]
             else:
                 logging.info('{} File does not exist! {}'.format(n, audio_path))

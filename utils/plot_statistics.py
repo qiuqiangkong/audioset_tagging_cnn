@@ -42,7 +42,7 @@ def plot(args):
             'data_type={}'.format(data_type), model_type, 
             'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
             'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
-            'statistics.pickle')
+            'statistics.pkl')
 
         statistics_dict = cPickle.load(open(statistics_path, 'rb'))
 
@@ -62,14 +62,152 @@ def plot(args):
     if select == '1':
         (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
             320, 64, 50, 14000, 'full_train', 'Cnn13_specaug_debug', 'clip_bce', 'balanced', 'none', 32)
-        line, = ax.plot(bal_map, label='cnn13_fc', color='r', alpha=bal_alpha)
-        line, = ax.plot(test_map, label='cnn13_fc', color='r', alpha=test_alpha)
+        line, = ax.plot(bal_map, label='cnn13_fc_debug', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_fc_debug', color='r', alpha=test_alpha)
         lines.append(line)
 
         (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
             320, 64, 50, 14000, 'full_train', 'Cnn13_specaug_debug', 'clip_bce', 'balanced', 'mixup', 32)
-        line, = ax.plot(bal_map, label='cnn13_fc_mixup', color='b', alpha=bal_alpha)
-        line, = ax.plot(test_map, label='cnn13_fc_mixup', color='b', alpha=test_alpha)
+        line, = ax.plot(bal_map, label='cnn13_fc_mixup_debug', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_fc_mixup_debug', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    if select == '1_cnn13':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug_debug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13_fc_debug', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_fc_debug', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13_fc_', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_fc', color='b', alpha=test_alpha)
+        lines.append(line)
+ 
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug_debug3', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13_fc_debug3', color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_fc_debug3', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug_debug4', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='xavier', color='k', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='xavier', color='k', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_mixup':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, label='cnn13_mixup', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_mixup', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_dropout':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_dropout_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13_dropout', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_dropout', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_dropout_specaug', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, label='cnn13_dropout_mixup', color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13_dropout_mixup', color='g', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_cnn9':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn9_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn5_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='g', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_resnet':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'DenseNet121_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='densenet121', color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='densenet121', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'DenseNet201_specaug', 'clip_bce', 'balanced', 'none', 16)
+        line, = ax.plot(bal_map, label='densenet201', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='densenet201', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet18_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='resnet18', color='k', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='resnet18', color='k', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet34_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='resnet34', color='y', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='resnet34', color='y', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet50_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='resnet50', color='c', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='resnet50', color='c', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet152_specaug', 'clip_bce', 'balanced', 'none', 16)
+        line, = ax.plot(bal_map, label='resnet152', color='m', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='resnet152', color='m', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_mobilenet':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='cnn13', color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV1_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='mobilenetv1', color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='mobilenetv1', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV2_specaug', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, label='mobilenetv2', color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='mobilenetv2', color='g', alpha=test_alpha)
         lines.append(line)
 
     ax.set_ylim(0, 1.)

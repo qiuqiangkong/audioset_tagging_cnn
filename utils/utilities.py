@@ -54,6 +54,14 @@ def create_logging(log_dir, filemode):
     logging.getLogger('').addHandler(console)
     
     return logging
+
+
+def float32_to_int16(x):
+    assert np.max(np.abs(x)) <= 1.
+    return (x * 32767.).astype(np.int16)
+
+def int16_to_float32(x):
+    return (x / 32767.).astype(np.float32)
     
 
 def pad_or_truncate(x, audio_length):

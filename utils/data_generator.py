@@ -6,9 +6,7 @@ import csv
 import time
 import logging
 
-# from utilities import get_sub_filepaths, read_audio, pad_or_truncate, scale
-# import config
-# from features import fine_target_to_coarse_target
+from utilities import int16_to_float32
 
 
 def read_black_list(black_list_csv):
@@ -24,11 +22,13 @@ def read_black_list(black_list_csv):
 
 
 class AudioSetDataset(object):
-    def __init__(self, target_hdf5_path, waveform_hdf5s_dir):
+    def __init__(self, target_hdf5_path, waveform_hdf5s_dir, audio_length, classes_num):
         """AduioSet dataset for later used by DataLoader. This class takes an 
         audio index as input and output corresponding waveform and target. 
         """
         self.waveform_hdf5s_dir = waveform_hdf5s_dir
+        self.audio_length = audio_length
+        self.classes_num = classes_num
 
         with h5py.File(target_hdf5_path, 'r') as hf:
             """
@@ -51,7 +51,7 @@ class AudioSetDataset(object):
             raise Exception('Incorrect hdf5_name!')
 
         return relative_path
-
+    
     def __getitem__(self, index):
         """Load waveform and target of the audio index. If index is -1 then 
             return None. 
@@ -59,7 +59,9 @@ class AudioSetDataset(object):
         Returns: {'audio_name': str, 'waveform': (audio_length,), 'target': (classes_num,)}
         """
         if index == -1:
-            return None
+            audio_name = None
+            waveform = np.zeros((self.audio_length,), dtype=np.float32)
+            target = np.zeros((self.classes_num,), dtype=np.float32)
         else:
             audio_name = self.audio_names[index]
             hdf5_name = self.hdf5_names[index]
@@ -69,15 +71,15 @@ class AudioSetDataset(object):
             hdf5_path = os.path.join(self.waveform_hdf5s_dir, relative_hdf5_path)
 
             with h5py.File(hdf5_path, 'r') as hf:
-                waveform = hf['waveform'][index_in_part_hdf5]
-                target = hf['target'][index_in_part_hdf5].astype(np.float32)
                 audio_name = hf['audio_name'][index_in_part_hdf5].decode()
+                waveform = int16_to_float32(hf['waveform'][index_in_part_hdf5])
+                target = hf['target'][index_in_part_hdf5].astype(np.float32)
+                
+        data_dict = {
+            'audio_name': audio_name, 'waveform': waveform, 'target': target}
             
-            data_dict = {
-                'audio_name': audio_name, 'waveform': waveform, 'target': target}
-            
-            return data_dict
-            
+        return data_dict
+    
     def __len__(self):
         return len(self.audio_names)
 
@@ -116,22 +118,61 @@ class BalancedSampler(object):
         logging.info('samples_num_per_class: {}'.format(
             self.samples_num_per_class.astype(np.int64)))
         
-        self.indexes1_per_class = []
+        self.indexes_per_class = []
         
         for k in range(self.classes_num):
-            self.indexes1_per_class.append(
+            self.indexes_per_class.append(
                 np.where(self.target[:, k] == 1)[0])
             
         # Shuffle indexes
         for k in range(self.classes_num):
-            self.random_state.shuffle(self.indexes1_per_class[k])
+            self.random_state.shuffle(self.indexes_per_class[k])
         
-        self.queue1 = []
-        self.pointers1_of_classes = [0] * self.classes_num
+        self.queue = []
+        self.pointers_of_classes = [0] * self.classes_num
 
-    def get_classes_set(self):
-        return np.arange(self.classes_num).tolist()
+    # def get_classes_set(self):
+    #     return np.arange(self.classes_num).tolist()
 
+    def expand_queue(self, queue):
+        classes_set = np.arange(self.classes_num).tolist()
+        self.random_state.shuffle(classes_set)
+        queue += classes_set
+        return queue
+
+    def __iter__(self):
+        """Generate audio indexes for training. 
+        
+        Returns: batch_indexes: (batch_size,). 
+        """
+        batch_size = self.batch_size
+
+        while True:
+            batch_indexes = []
+            i = 0
+            while i < batch_size:
+                if len(self.queue) == 0:
+                    self.queue = self.expand_queue(self.queue)
+
+                class_id = self.queue.pop(0)
+                pointer = self.pointers_of_classes[class_id]
+                self.pointers_of_classes[class_id] += 1
+                audio_index = self.indexes_per_class[class_id][pointer]
+                
+                if self.pointers_of_classes[class_id] >= self.samples_num_per_class[class_id]:
+                    self.pointers_of_classes[class_id] = 0
+                    self.random_state.shuffle(self.indexes_per_class[class_id])
+
+                # If audio in black list then continue
+                if self.audio_names[audio_index] in self.black_list_names:
+                    continue
+                else:
+                    batch_indexes.append(audio_index)
+                    i += 1
+
+            yield batch_indexes
+
+    '''
     def __iter__(self):
         """Generate audio indexes for training. 
         
@@ -178,21 +219,21 @@ class BalancedSampler(object):
             batch_indexes = np.concatenate(batch_indexes1, axis=0)
 
             yield batch_indexes
-                    
+    '''
     def __len__(self):
         return -1
         
     def state_dict(self):
         state = {
-            'indexes1_per_class': self.indexes1_per_class, 
-            'queue1': self.queue1, 
-            'pointers1_of_classes': self.pointers1_of_classes}
+            'indexes_per_class': self.indexes_per_class, 
+            'queue': self.queue, 
+            'pointers_of_classes': self.pointers_of_classes}
         return state
             
     def load_state_dict(self, state):
-        self.indexes1_per_class = state['indexes1_per_class']
-        self.queue1 = state['queue1']
-        self.pointers1_of_classes = state['pointers1_of_classes']
+        self.indexes_per_class = state['indexes_per_class']
+        self.queue = state['queue']
+        self.pointers_of_classes = state['pointers_of_classes']
 
 
 class BalancedSamplerMixup(object):
@@ -257,9 +298,9 @@ class BalancedSamplerMixup(object):
         self.pointers2_of_classes = [0] * self.classes_num
         self.finished_epochs_per_class = [0] * self.classes_num
 
-    def get_classes_set(self):
-        return np.arange(self.classes_num).tolist()
-
+    # def get_classes_set(self):
+    #     return np.arange(self.classes_num).tolist()
+    '''
     def __iter__(self):
         """Generate audio indexes for training. 
         
@@ -343,7 +384,75 @@ class BalancedSamplerMixup(object):
             batch_indexes = np.array(batch_indexes1 + batch_indexes2)
 
             yield batch_indexes
-                    
+    '''
+
+    def expand_queue(self, queue):
+        classes_set = np.arange(self.classes_num).tolist()
+        self.random_state.shuffle(classes_set)
+        queue += classes_set
+        return queue
+
+    def __iter__(self):
+        """Generate audio indexes for training. 
+        
+        Returns: batch_indexes: (batch_size * 2,). 
+            Data from batch_indexes[0 : batch_size] will be mixup with batch_indexes[batch_size : batch_size * 2]
+            index can be -1 in batch_indexes[batch_size : batch_size * 2] indicating no mixup. 
+        """
+        batch_size = self.batch_size
+
+        while True:
+            batch_indexes = []
+            i = 0
+            while i < batch_size:
+                if len(self.queue1) == 0:
+                    self.queue1 = self.expand_queue(self.queue1)
+
+                class1_id = self.queue1.pop(0)
+                pointer1 = self.pointers1_of_classes[class1_id]
+                self.pointers1_of_classes[class1_id] += 1
+                audio1_index = self.indexes1_per_class[class1_id][pointer1]
+                
+                if self.pointers1_of_classes[class1_id] >= self.samples_num_per_class[class1_id]:
+                    self.finished_epochs_per_class[class1_id] += 1
+                    self.pointers1_of_classes[class1_id] = 0
+                    self.random_state.shuffle(self.indexes1_per_class[class1_id])
+
+                # If audio in black list then continue
+                if self.audio_names[audio1_index] in self.black_list_names:
+                    continue
+                else:
+                    batch_indexes.append(audio1_index)
+                    i += 1
+
+                # If exceed some epochs then get audio for mixup
+                if self.finished_epochs_per_class[class1_id] >= self.start_mix_epoch:
+                    j = 0
+                    while j < 1:
+                        if len(self.queue2) == 0:
+                            self.queue2 = self.expand_queue(self.queue2)
+
+                        class2_id = self.queue2.pop(0)
+                        pointer2 = self.pointers2_of_classes[class2_id]
+                        self.pointers2_of_classes[class2_id] += 1
+                        audio2_index = self.indexes2_per_class[class2_id][pointer2]
+
+                        if self.pointers2_of_classes[class2_id] >= self.samples_num_per_class[class2_id]:
+                            self.pointers2_of_classes[class2_id] = 0
+                            self.random_state.shuffle(self.indexes2_per_class[class2_id])
+
+                        # If audio in black list then continue
+                        if self.audio_names[audio2_index] in self.black_list_names:
+                            continue
+                        else:
+                            batch_indexes.append(audio2_index)
+                            j += 1
+                else:
+                    batch_indexes.append(-1)
+
+            yield batch_indexes
+    
+
     def __len__(self):
         return -1
         
@@ -396,9 +505,9 @@ class EvaluateSampler(object):
             yield batch_indexes
 
 
-class DataPreprocessor(object):
+class Collator(object):
     def __init__(self, mixup_alpha, random_seed=1234):
-        """Preprocessing.
+        """Data collator.
         
         Args:
           mixup: bool
@@ -406,8 +515,9 @@ class DataPreprocessor(object):
         self.mixup_alpha = mixup_alpha
         self.random_state = np.random.RandomState(random_seed)
         
-    def transform_train_data(self, list_data_dict):
-        """Preprocess data. Add mixup information to list_data_dict. 
+    
+    def __call__(self, list_data_dict):
+        """Collate data to tensor. Add mixup information to list_data_dict. 
         
         Args:
           list_data_dict: 
@@ -421,56 +531,24 @@ class DataPreprocessor(object):
             'target': (audios_num, classes_num), 
             (optional) 'mixup_lambda': (audios_num,)}
         """
+        np_data_dict = {}
+        
         if self.mixup_alpha:
-            batch_size = len(list_data_dict) // 2
-            audio_length = list_data_dict[0]['waveform'].shape[0]
-            classes_num = list_data_dict[0]['target'].shape[0]
-            
-            for n in range(batch_size):
-                if list_data_dict[n + batch_size] is None:
-                    list_data_dict[n]['mixup_lambda'] = 1.
 
-                    # Dummy data
-                    list_data_dict[n + batch_size] = {
-                        'audio_name': None, 
-                        'waveform': np.zeros(audio_length), 
-                        'target': np.zeros(classes_num), 
-                        'mixup_lambda': 0.}
+            mixup_lambdas = []
+            for n in range(1, len(list_data_dict), 2):
+                if list_data_dict[n]['audio_name'] is None:
+                    lam = 1.
                 else:
                     lam = self.random_state.beta(self.mixup_alpha, self.mixup_alpha, 1)[0]
-                    list_data_dict[n]['mixup_lambda'] = lam
-                    list_data_dict[n + batch_size]['mixup_lambda'] = 1. - lam
+                
+                mixup_lambdas.append(lam)
+                mixup_lambdas.append(1. - lam)
+                
+            np_data_dict['mixup_lambda'] = np.array(mixup_lambdas)
         
-        np_data_dict = {
-            'audio_name': np.array([data_dict['audio_name'] for data_dict in list_data_dict]), 
-            'waveform': np.array([data_dict['waveform'] for data_dict in list_data_dict]), 
-            'target': np.array([data_dict['target'] for data_dict in list_data_dict])}
-
-        if self.mixup_alpha:
-            np_data_dict['mixup_lambda'] = np.array([data_dict['mixup_lambda'] for data_dict in list_data_dict])
+        np_data_dict['audio_name'] = np.array([data_dict['audio_name'] for data_dict in list_data_dict])
+        np_data_dict['waveform'] = np.array([data_dict['waveform'] for data_dict in list_data_dict])
+        np_data_dict['target'] = np.array([data_dict['target'] for data_dict in list_data_dict])
 
         return np_data_dict
-
-
-    def transform_test_data(self, list_data_dict):
-        """Preprocess data. 
-        
-        Args:
-          list_data_dict: 
-            [{'audio_name': 'YtwJdQzi7x7Q.wav', 'waveform': (audio_length,), 'target': (classes_num)}, 
-            ...]
-
-        Returns:
-          np_data_dict: {
-            'audio_name': (audios_num,), 
-            'waveform': (audios_num, audio_length), 
-            'target': (audios_num, classes_num), 
-            (optional) 'mixup_lambda': (audios_num,)}
-        """
-        np_data_dict = {
-            'audio_name': np.array([data_dict['audio_name'] for data_dict in list_data_dict]), 
-            'waveform': np.array([data_dict['waveform'] for data_dict in list_data_dict]), 
-            'target': np.array([data_dict['target'] for data_dict in list_data_dict])}
-
-        return np_data_dict
-
