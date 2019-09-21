@@ -131,9 +131,6 @@ class BalancedSampler(object):
         self.queue = []
         self.pointers_of_classes = [0] * self.classes_num
 
-    # def get_classes_set(self):
-    #     return np.arange(self.classes_num).tolist()
-
     def expand_queue(self, queue):
         classes_set = np.arange(self.classes_num).tolist()
         self.random_state.shuffle(classes_set)
@@ -172,54 +169,6 @@ class BalancedSampler(object):
 
             yield batch_indexes
 
-    '''
-    def __iter__(self):
-        """Generate audio indexes for training. 
-        
-        Returns: batch_indexes: (batch_size,). 
-        """
-        batch_size = self.batch_size
-
-        while True:
-            # If queue1 is not long enough then append more indexes
-            while len(self.queue1) < batch_size:
-                classes_set = self.get_classes_set()
-                self.random_state.shuffle(classes_set)
-                self.queue1 += classes_set
-                
-            # Fetch classes from queue1
-            batch_class_ids = self.queue1[0 : batch_size]
-            self.queue1[0 : batch_size] = []
-                
-            batch_samples_num_per_class = [
-                batch_class_ids.count(k) for k in range(self.classes_num)]
-                
-            batch_indexes1 = []
-
-            # Get indexes from each class
-            for k in range(self.classes_num):
-                bgn_pointer = self.pointers1_of_classes[k]
-                fin_pointer = self.pointers1_of_classes[k] + \
-                    batch_samples_num_per_class[k]
-                    
-                self.pointers1_of_classes[k] += batch_samples_num_per_class[k]
-                idxes = self.indexes1_per_class[k][bgn_pointer : fin_pointer]
-                
-                # Remove indexes appeared in black list
-                for idx in idxes:
-                    if self.audio_names[idx] in self.black_list_names:
-                        idxes = np.delete(idxes, np.argwhere(idxes == idx))
-                
-                batch_indexes1.append(idxes)
-                
-                if self.pointers1_of_classes[k] >= self.samples_num_per_class[k]:
-                    self.pointers1_of_classes[k] = 0
-                    self.random_state.shuffle(self.indexes1_per_class[k])
-                 
-            batch_indexes = np.concatenate(batch_indexes1, axis=0)
-
-            yield batch_indexes
-    '''
     def __len__(self):
         return -1
         

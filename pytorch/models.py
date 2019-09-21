@@ -28,15 +28,7 @@ def init_bn(bn):
     """Initialize a Batchnorm layer. """
     bn.bias.data.fill_(0.)
     bn.weight.data.fill_(1.)
-
     
-def init_bn(bn):
-    """Initialize a Batchnorm layer. """
-    bn.bias.data.fill_(0.)
-    bn.running_mean.data.fill_(0.)
-    bn.weight.data.fill_(1.)
-    bn.running_var.data.fill_(1.)
-
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels):

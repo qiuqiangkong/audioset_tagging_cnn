@@ -32,9 +32,28 @@ dataset_root
 </pre>
 
 ## 2. Pack data to hdf5
-Loading wav format files is slow. Also storing millions of files on disk is inefficient. We pack wavs to big hdf5 files, 1 for balanced training subset, 1 for evaluation subset and 41 for unbalanced traning subset. 
+Loading wav format files is slow. Also storing millions of files on disk is inefficient. We pack wavs to big hdf5 files, 1 for balanced training subset, 1 for evaluation subset and 41 for unbalanced traning subset. The packed files looks like:
 
-## Train
+<pre>
+workspace
+└── hdf5s
+     ├── targets (2.3 GB)
+     |    ├── balanced_train.h5
+     |    ├── eval.h5
+     |    └── unbalanced_train
+     |        ├── unbalanced_train_part00.h5
+     |        ...
+     |        └── unbalanced_train_part40.h5
+     └── waveforms (1.1 TB)
+          ├── balanced_train.h5
+          ├── eval.h5
+          └── unbalanced_train
+              ├── unbalanced_train_part00.h5
+              ...
+              └── unbalanced_train_part40.h5
+</pre>
+
+## 3. Train
 Training is easy!
 
 ```
