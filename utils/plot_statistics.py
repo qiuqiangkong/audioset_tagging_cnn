@@ -305,9 +305,46 @@ def plot(args):
         lines.append(line)
 
         (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
-            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelMax', 'clip_bce', 'balanced', 'none', 32)
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelMax', 'clip_bce', 'balanced', 'mixup', 32)
         line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
         line, = ax.plot(test_map, label='Cnn13_DecisionLevelMax', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelAvg', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_DecisionLevelAvg', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelAtt', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='k', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_DecisionLevelAtt', color='k', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_transformer':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_Transformer1', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_Transformer1', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_Transformer3', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_Transformer3', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_Transformer6', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='k', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_Transformer6', color='k', alpha=test_alpha)
         lines.append(line)
 
     ax.set_ylim(0, 1.)
