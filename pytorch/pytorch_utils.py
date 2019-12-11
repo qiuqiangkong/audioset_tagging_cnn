@@ -21,7 +21,7 @@ def count_parameters(model):
 
 def count_flops(model, audio_length):
 
-    multiply_adds = False
+    multiply_adds = True
     list_conv2d=[]
     def conv2d_hook(self, input, output):
         batch_size, input_channels, input_height, input_width = input[0].size()
@@ -60,11 +60,11 @@ def count_flops(model, audio_length):
  
     list_bn=[] 
     def bn_hook(self, input, output):
-        list_bn.append(input[0].nelement())
+        list_bn.append(input[0].nelement() * 2)
  
     list_relu=[] 
     def relu_hook(self, input, output):
-        list_relu.append(input[0].nelement())
+        list_relu.append(input[0].nelement() * 2)
  
     list_pooling2d=[]
     def pooling2d_hook(self, input, output):

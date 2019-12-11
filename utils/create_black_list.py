@@ -14,7 +14,7 @@ def dcase2017task4(args):
     workspace = args.workspace
     
     # Paths
-    dcase2017task4_dataset_dir = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/dcase2017_task4'
+    dcase2017task4_dataset_dir = '/vol/vssp/msos/qk/datasets/dcase2017/task4/dataset_root'
 
     test_weak_csv = os.path.join(dcase2017task4_dataset_dir, 'metadata/groundtruth_weak_label_testing_set.csv')
     evaluation_weak_csv = os.path.join(dcase2017task4_dataset_dir, 'metadata/groundtruth_weak_label_evaluation_set.csv')

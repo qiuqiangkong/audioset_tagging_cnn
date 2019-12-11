@@ -329,6 +329,66 @@ def train(args):
             break
 
 
+def inference(args):
+    """Inference.
+    """
+
+    # Arugments & parameters
+    device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
+
+    sample_rate = config.sample_rate
+    window_size = 1024
+    hop_size = 320
+    mel_bins = 64
+    fmin = 50
+    fmax = 14000
+    classes_num = config.classes_num
+
+    if 'cuda' in str(device):
+        device = 'cuda'
+    else:
+        device = 'cpu'
+
+    # Paths
+    '''
+    Model = Cnn13
+    checkpoints_path = "/vol/vssp/msos/qk/bytedance/workspaces_important/pub_audioset_tagging_cnn_transfer/checkpoints/main/sample_rate=32000,window_size=1024,hop_size=320,mel_bins=64,fmin=50,fmax=14000/data_type=full_train/Cnn13/loss_type=clip_bce/balanced=balanced/augmentation=mixup/batch_size=32/660000_iterations.pth"
+    '''
+    Model = Cnn13_DecisionLevelMax
+    checkpoints_path = "/vol/vssp/msos/qk/bytedance/workspaces_important/pub_audioset_tagging_cnn_transfer/checkpoints/main/sample_rate=32000,window_size=1024,hop_size=320,mel_bins=64,fmin=50,fmax=14000/data_type=full_train/Cnn13_DecisionLevelMax/loss_type=clip_bce/balanced=balanced/augmentation=mixup/batch_size=32/400000_iterations.pth"
+
+    # Model
+    model = Model(sample_rate=sample_rate, window_size=window_size, 
+        hop_size=hop_size, mel_bins=mel_bins, fmin=fmin, fmax=fmax, 
+        classes_num=classes_num)
+
+    checkpoint = torch.load(checkpoints_path)
+    model.load_state_dict(checkpoint['model'])
+
+    # Parallel
+    print('GPU number: {}'.format(torch.cuda.device_count()))
+    model = torch.nn.DataParallel(model)
+
+    if 'cuda' in str(device):
+        model.to(device)
+ 
+    data = np.zeros((1, 32000))
+    # data = np.sin(np.arange(320000)/440 * 6.28)[None, :]
+    data = move_data_to_device(data, device)
+
+    inference_time = time.time()
+    output_dict = model(data, None)
+    clipwise_output = output_dict['clipwise_output'].data.cpu().numpy()[0]
+
+    sorted_indexes = np.argsort(clipwise_output)[::-1][0:10]
+    clipwise_output[sorted_indexes]
+    np.array(config.labels)[sorted_indexes]
+
+    print('Inference time: {} s'.format(time.time() - inference_time))
+    import crash
+    asdf
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Example of parser. ')
@@ -353,15 +413,6 @@ if __name__ == '__main__':
     parser_train.add_argument('--cuda', action='store_true', default=False)
     
     parser_inference = subparsers.add_parser('inference')
-    parser_inference.add_argument('--dataset_dir', type=str, required=True)    
-    parser_inference.add_argument('--workspace', type=str, required=True)
-    parser_inference.add_argument('--frames_per_second', type=int, required=True)
-    parser_inference.add_argument('--mel_bins', type=int, required=True)
-    parser_inference.add_argument('--model_type', type=str, required=True)    
-    parser_inference.add_argument('--balanced', type=str, required=True)
-    parser_inference.add_argument('--augmentation', type=str, required=True)
-    parser_inference.add_argument('--batch_size', type=int, required=True)
-    parser_inference.add_argument('--iteration', type=int, required=True)
     parser_inference.add_argument('--cuda', action='store_true', default=False)
     
     args = parser.parse_args()

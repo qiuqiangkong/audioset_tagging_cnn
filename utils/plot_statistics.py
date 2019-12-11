@@ -3,10 +3,14 @@ import sys
 import numpy as np
 import argparse
 import h5py
+import time
 import _pickle as cPickle
+import _pickle
 import matplotlib.pyplot as plt
+import csv
+from sklearn import metrics
 
-from utilities import (create_folder, get_filename)
+from utilities import (create_folder, get_filename, d_prime)
 import config
 
 
@@ -363,7 +367,667 @@ def plot(args):
     print('Save figure to {}'.format(save_out_path))
 
 
+def table_values(args):
+    
+    # Arguments & parameters
+    dataset_dir = args.dataset_dir
+    workspace = args.workspace
+    select = args.select
+    
+    def _load_metrics(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size, iteration):
+        statistics_path = os.path.join(workspace, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+ 
+        idx = iteration // 2000
+        mAP = np.mean(statistics_dict['test'][idx]['average_precision'])
+        mAUC = np.mean(statistics_dict['test'][idx]['auc'])
+        dprime = d_prime(mAUC)
+
+        print('mAP: {:.3f}'.format(mAP))
+        print('mAUC: {:.3f}'.format(mAUC))
+        print('dprime: {:.3f}'.format(dprime))
+
+
+    if select == 'cnn13':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn5':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn5', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn9':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn9', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_decisionlevelmax':
+        iteration = 400000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelMax', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+    
+    elif select == 'cnn13_decisionlevelavg':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelAvg', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_decisionlevelatt':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_DecisionLevelAtt', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_emb32':
+        iteration = 560000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb32', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_emb128':
+        iteration = 560000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb128', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_emb512':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb512', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_hop500':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            500, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_hop640':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            640, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'cnn13_hop1000':
+        iteration = 540000
+        _load_metrics('main', 32000, 1024, 
+            1000, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'mobilenetv1':
+        iteration = 560000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV1', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'mobilenetv2':
+        iteration = 560000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV2', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'resnet18':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet18', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'resnet34':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet34', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'resnet50':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet50', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'dainet':
+        iteration = 600000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_DaiNet', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'leenet':
+        iteration = 540000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_LeeNet', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'leenet18':
+        iteration = 440000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_LeeNet18', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'resnet34_1d':
+        iteration = 500000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_ResNet34', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'resnet50_1d':
+        iteration = 500000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_ResNet50', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'waveform_cnn2d':
+        iteration = 660000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_WavCnn2d', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    elif select == 'waveform_spandwav':
+        iteration = 700000
+        _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_SpAndWav', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+ 
+def crop_label(label):
+    max_len = 16
+    if len(label) <= max_len:
+        return label
+    else:
+        words = label.split(' ')
+        cropped_label = ''
+        for w in words:
+            if len(cropped_label + ' ' + w) > max_len:
+                break
+            else:
+                cropped_label += ' {}'.format(w)
+    return cropped_label
+
+def add_comma(integer):
+    integer = int(integer)
+    if integer >= 1000:
+        return str(integer // 1000) + ',' + str(integer % 1000)
+    else:
+        return str(integer)
+
+
+def plot_class_iteration(args):
+    
+    # Arguments & parameters
+    workspace = args.workspace
+    select = args.select
+    
+    save_out_path = 'results_map/class_iteration_map.pdf'
+    create_folder(os.path.dirname(save_out_path))
+
+    def _load_metrics(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size, iteration):
+        statistics_path = os.path.join(workspace, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+        return statistics_dict
+
+    iteration = 600000
+    statistics_dict = _load_metrics('main', 32000, 1024, 
+        320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    mAP_mat = np.array([e['average_precision'] for e in statistics_dict['test']])
+    mAP_mat = mAP_mat[0 : 300, :]
+    sorted_indexes = np.argsort(config.full_samples_per_class)[::-1]
+
+
+    fig, axs = plt.subplots(1, 3, figsize=(20, 5))
+    ranges = [np.arange(0, 10), np.arange(250, 260), np.arange(517, 527)]
+    axs[0].set_ylabel('mAP')
+
+    for col in range(0, 3):
+        axs[col].set_ylim(0, 1.)
+        axs[col].set_xlim(0, 301)
+        axs[col].set_xlabel('Iterations')
+        axs[col].set_ylabel('mAP')
+        axs[col].xaxis.set_ticks(np.arange(0, 301, 100))
+        axs[col].xaxis.set_ticklabels(['0', '200k', '400k', '600k'])
+        lines = []
+        for _ix in ranges[col]:
+            _label = crop_label(config.labels[sorted_indexes[_ix]]) + \
+                ' ({})'.format(add_comma(config.full_samples_per_class[sorted_indexes[_ix]]))
+            line, = axs[col].plot(mAP_mat[:, sorted_indexes[_ix]], label=_label)
+            lines.append(line)
+        box = axs[col].get_position()
+        axs[col].set_position([box.x0, box.y0, box.width * 1., box.height])
+        axs[col].legend(handles=lines, bbox_to_anchor=(1., 1.))
+        axs[col].yaxis.grid(color='k', linestyle='solid', alpha=0.3, linewidth=0.3)
+ 
+    plt.tight_layout(pad=4, w_pad=1, h_pad=1)
+    plt.savefig(save_out_path)
+
+    import crash
+    asdf
+
+
+def _load_old_metrics(workspace, filename, iteration, data_type):
+    
+    assert data_type in ['train', 'test']
+    
+    stat_name = "stat_{}_iters.p".format(iteration)
+
+    # Load stats
+    stat_path = os.path.join(workspace, "stats", filename, data_type, stat_name)
+    try:
+        stats = cPickle.load(open(stat_path, 'rb'))
+    except:
+        stats = cPickle.load(open(stat_path, 'rb'), encoding='latin1')
+
+    precisions = [stat['precisions'] for stat in stats]
+    recalls = [stat['recalls'] for stat in stats]
+    maps = np.array([stat['AP'] for stat in stats])
+    aucs = np.array([stat['auc'] for stat in stats])
+    
+    return {'average_precision': maps, 'AUC': aucs}
+
+def _sort(ys):
+    sorted_idxes = np.argsort(ys)
+    sorted_idxes = sorted_idxes[::-1]
+    sorted_ys = ys[sorted_idxes]
+    sorted_lbs = [config.labels[e] for e in sorted_idxes]
+    return sorted_ys, sorted_idxes, sorted_lbs
+
+def load_data(hdf5_path):
+    with h5py.File(hdf5_path, 'r') as hf:
+        x = hf['x'][:]
+        y = hf['y'][:]
+        video_id_list = list(hf['video_id_list'][:])
+    return x, y, video_id_list
+
+def get_avg_stats(workspace, bgn_iter, fin_iter, interval_iter, filename, data_type):
+    
+    assert data_type in ['train', 'test']
+    bal_train_hdf5 = "/vol/vssp/msos/audioset/packed_features/bal_train.h5"
+    eval_hdf5 = "/vol/vssp/msos/audioset/packed_features/eval.h5"
+    unbal_train_hdf5 = "/vol/vssp/msos/audioset/packed_features/unbal_train.h5"
+    
+    t1 = time.time()
+    if data_type == 'test':
+        (te_x, te_y, te_id_list) = load_data(eval_hdf5)
+    elif data_type == 'train':
+        (te_x, te_y, te_id_list) = load_data(bal_train_hdf5)
+    y = te_y
+    
+    prob_dir = os.path.join(workspace, "probs", filename, data_type)
+    names = os.listdir(prob_dir)
+    
+    probs = []
+    iters = range(bgn_iter, fin_iter, interval_iter)
+    for iter in iters:
+        pickle_path = os.path.join(prob_dir, "prob_%d_iters.p" % iter)
+        try:
+            prob = cPickle.load(open(pickle_path, 'rb'))
+        except:
+            prob = cPickle.load(open(pickle_path, 'rb'), encoding='latin1')
+        probs.append(prob)
+    
+    avg_prob = np.mean(np.array(probs), axis=0)
+    
+    n_out = y.shape[1]
+    stats = []
+    for k in range(n_out): # around 7 seconds
+        (precisions, recalls, thresholds) = metrics.precision_recall_curve(y[:, k], avg_prob[:, k])
+        avg_precision = metrics.average_precision_score(y[:, k], avg_prob[:, k], average=None)
+        (fpr, tpr, thresholds) = metrics.roc_curve(y[:, k], avg_prob[:, k])
+        auc = metrics.roc_auc_score(y[:, k], avg_prob[:, k], average=None)
+        # eer = pp_data.eer(avg_prob[:, k], y[:, k])
+        
+        skip = 1000
+        dict = {'precisions': precisions[0::skip], 'recalls': recalls[0::skip], 'AP': avg_precision, 
+                'fpr': fpr[0::skip], 'fnr': 1. - tpr[0::skip], 'auc': auc}
+        
+        stats.append(dict)
+        
+    mAPs = np.array([e['AP'] for e in stats])
+    aucs = np.array([e['auc'] for e in stats])
+        
+    print("Get avg time: {}".format(time.time() - t1))
+        
+    return {'average_precision': mAPs, 'auc': aucs}
+
+
+def _samples_num_per_class():
+    bal_train_hdf5 = "/vol/vssp/msos/audioset/packed_features/bal_train.h5"
+    eval_hdf5 = "/vol/vssp/msos/audioset/packed_features/eval.h5"
+    unbal_train_hdf5 = "/vol/vssp/msos/audioset/packed_features/unbal_train.h5"
+
+    (x, y, id_list) = load_data(eval_hdf5)
+    eval_num = np.sum(y, axis=0)
+
+    (x, y, id_list) = load_data(bal_train_hdf5)
+    bal_num = np.sum(y, axis=0)
+
+    (x, y, id_list) = load_data(unbal_train_hdf5)
+    unbal_num = np.sum(y, axis=0)
+
+    return bal_num, unbal_num, eval_num
+
+
+def get_label_quality():
+    
+    rate_csv = '/vol/vssp/msos/qk/workspaces/pub_audioset_tagging_cnn_transfer/metadata/qa_true_counts.csv'
+    
+    with open(rate_csv, 'r') as f:
+        reader = csv.reader(f, delimiter=',')
+        lis = list(reader)
+        
+    rates = []
+
+    for n in range(1, len(lis)):
+        li = lis[n]
+        if float(li[1]) == 0:
+            rate = None
+        else:
+            rate = float(li[2]) / float(li[1])
+        rates.append(rate)
+    
+    return rates
+
+
+def summary_stats(args):
+    # Arguments & parameters
+    workspace = args.workspace
+
+    out_stat_path = os.path.join(workspace, 'results', 'stats_for_paper.pkl')
+    create_folder(os.path.dirname(out_stat_path))
+
+    # Old workspace
+    old_workspace = '/vol/vssp/msos/qk/workspaces/audioset_classification'
+
+    # bal_train_metrics = _load_old_metrics(old_workspace, 'tmp127', 20000, 'train')
+    # eval_metrics = _load_old_metrics(old_workspace, 'tmp127', 20000, 'test')
+    
+    bal_train_metrics = get_avg_stats(old_workspace, bgn_iter=10000, fin_iter=50001, interval_iter=5000, filename='tmp127_re', data_type='train')
+    eval_metrics = get_avg_stats(old_workspace, bgn_iter=10000, fin_iter=50001, interval_iter=5000, filename='tmp127_re', data_type='test')
+
+    maps0te = eval_metrics['average_precision']
+    (maps0te, sorted_idxes, sorted_lbs) = _sort(maps0te)
+
+    bal_num, unbal_num, eval_num = _samples_num_per_class()
+
+    output_dict = {
+        'labels': config.labels, 
+        'label_quality': get_label_quality(), 
+        'sorted_indexes_for_plot': sorted_idxes, 
+        'official_balanced_trainig_samples': bal_num, 
+        'official_unbalanced_training_samples': unbal_num, 
+        'official_eval_samples': eval_num, 
+        'downloaded_full_training_samples': config.full_samples_per_class, 
+        'averaging_instance_system_avg_9_probs_from_10000_to_50000_iterations': 
+            {'bal_train': bal_train_metrics, 'eval': eval_metrics}
+        }
+
+    def _load_metrics(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size, iteration):
+        _workspace = '/vol/vssp/msos/qk/bytedance/workspaces_important/pub_audioset_tagging_cnn_transfer'
+        statistics_path = os.path.join(_workspace, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+        _idx = iteration // 2000
+        _dict = {'bal_train': {'average_precision': statistics_dict['bal'][_idx]['average_precision'], 
+                                'auc': statistics_dict['bal'][_idx]['auc']}, 
+                'eval': {'average_precision': statistics_dict['test'][_idx]['average_precision'], 
+                        'auc': statistics_dict['test'][_idx]['auc']}}
+        return _dict
+
+    iteration = 600000
+    output_dict['cnn13_system_iteration60k'] = _load_metrics('main', 32000, 1024, 
+        320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    iteration = 560000
+    output_dict['mobilenetv1_system_iteration56k'] = _load_metrics('main', 32000, 1024, 
+        320, 64, 50, 14000, 'full_train', 'MobileNetV1', 'clip_bce', 'balanced', 'mixup', 32, iteration)
+
+    cPickle.dump(output_dict, open(out_stat_path, 'wb'))
+    print('Write stats for paper to {}'.format(out_stat_path))
+
+ 
+def prepare_plot_long_4_rows(sorted_lbs):
+    N = len(sorted_lbs)
+
+    f,(ax1a, ax2a, ax3a, ax4a) = plt.subplots(4, 1,sharey=False, facecolor='w', figsize=(10, 12))
+
+    fontsize = 5
+
+    K = 132
+    ax1a.set_xlim(0, K)
+    ax2a.set_xlim(K, 2 * K)
+    ax3a.set_xlim(2 * K, 3 * K)
+    ax4a.set_xlim(3 * K, N)
+    
+    truncated_sorted_lbs = []
+    for lb in sorted_lbs:
+        lb = lb[0 : 25]
+        words = lb.split(' ')
+        if len(words[-1]) < 3:
+            lb = ' '.join(words[0:-1])
+        truncated_sorted_lbs.append(lb)
+  
+    ax1a.grid(which='major', axis='x', linestyle='-', alpha=0.3)
+    ax2a.grid(which='major', axis='x', linestyle='-', alpha=0.3)
+    ax3a.grid(which='major', axis='x', linestyle='-', alpha=0.3)
+    ax4a.grid(which='major', axis='x', linestyle='-', alpha=0.3)
+    
+    ax1a.set_yscale('log')
+    ax2a.set_yscale('log')
+    ax3a.set_yscale('log')
+    ax4a.set_yscale('log')
+    
+    ax1b = ax1a.twinx()
+    ax2b = ax2a.twinx()
+    ax3b = ax3a.twinx()
+    ax4b = ax4a.twinx()
+    ax1b.set_ylim(0., 1.)
+    ax2b.set_ylim(0., 1.)
+    ax3b.set_ylim(0., 1.)
+    ax4b.set_ylim(0., 1.)
+    ax1b.set_ylabel('Average precision')
+    ax2b.set_ylabel('Average precision')
+    ax3b.set_ylabel('Average precision')
+    ax4b.set_ylabel('Average precision')
+    
+    ax1b.yaxis.grid(color='grey', linestyle='--', alpha=0.5)
+    ax2b.yaxis.grid(color='grey', linestyle='--', alpha=0.5)
+    ax3b.yaxis.grid(color='grey', linestyle='--', alpha=0.5)
+    ax4b.yaxis.grid(color='grey', linestyle='--', alpha=0.5)
+    
+    ax1a.xaxis.set_ticks(np.arange(K))
+    ax1a.xaxis.set_ticklabels(truncated_sorted_lbs[0:K], rotation=90, fontsize=fontsize)
+    ax1a.xaxis.tick_bottom()
+    ax1a.set_ylabel("Number of audio clips")
+    
+    ax2a.xaxis.set_ticks(np.arange(K, 2*K))
+    ax2a.xaxis.set_ticklabels(truncated_sorted_lbs[K:2*K], rotation=90, fontsize=fontsize)
+    ax2a.xaxis.tick_bottom()
+    # ax2a.tick_params(left='off', which='both')
+    ax2a.set_ylabel("Number of audio clips")
+    
+    ax3a.xaxis.set_ticks(np.arange(2*K, 3*K))
+    ax3a.xaxis.set_ticklabels(truncated_sorted_lbs[2*K:3*K], rotation=90, fontsize=fontsize)
+    ax3a.xaxis.tick_bottom()
+    ax3a.set_ylabel("Number of audio clips")
+    
+    ax4a.xaxis.set_ticks(np.arange(3*K, N))
+    ax4a.xaxis.set_ticklabels(truncated_sorted_lbs[3*K:], rotation=90, fontsize=fontsize)
+    ax4a.xaxis.tick_bottom()
+    # ax4a.tick_params(left='off', which='both')
+    ax4a.set_ylabel("Number of audio clips")
+    
+    ax1a.spines['right'].set_visible(False)
+    ax1b.spines['right'].set_visible(False)
+    ax2a.spines['left'].set_visible(False)
+    ax2b.spines['left'].set_visible(False)
+    ax2a.spines['right'].set_visible(False)
+    ax2b.spines['right'].set_visible(False)
+    ax3a.spines['left'].set_visible(False)
+    ax3b.spines['left'].set_visible(False)
+    ax3a.spines['right'].set_visible(False)
+    ax3b.spines['right'].set_visible(False)
+    ax4a.spines['left'].set_visible(False)
+    ax4b.spines['left'].set_visible(False)
+    
+    plt.subplots_adjust(hspace = 0.8)
+    
+    return ax1a, ax2a, ax3a, ax4a, ax1b, ax2b, ax3b, ax4b
+
+def _scatter_4_rows(x, ax, ax2, ax3, ax4, s, c, marker='.', alpha=1.):
+    N = len(x)
+    ax.scatter(np.arange(N), x, s=s, c=c, marker=marker, alpha=alpha)
+    ax2.scatter(np.arange(N), x, s=s, c=c, marker=marker, alpha=alpha)
+    ax3.scatter(np.arange(N), x, s=s, c=c, marker=marker, alpha=alpha)
+    ax4.scatter(np.arange(N), x, s=s, c=c, marker=marker, alpha=alpha)
+
+def _plot_4_rows(x, ax, ax2, ax3, ax4, c, linewidth=1.0, alpha=1.0, label=""):
+    N = len(x)
+    ax.plot(x, c=c, linewidth=linewidth, alpha=alpha)
+    ax2.plot(x, c=c, linewidth=linewidth, alpha=alpha)
+    ax3.plot(x, c=c, linewidth=linewidth, alpha=alpha)
+    line, = ax4.plot(x, c=c, linewidth=linewidth, alpha=alpha, label=label)
+    return line
+
+def plot_long_fig(args):
+    # Arguments & parameters
+    workspace = args.workspace
+    
+    # Paths
+    stat_path = os.path.join(workspace, 'results', 'stats_for_paper.pkl')
+    save_out_path = 'results_map/long_fig.pdf'
+    create_folder(os.path.dirname(save_out_path))
+
+    # Stats
+    stats = cPickle.load(open(stat_path, 'rb'))
+
+    N = len(config.labels)
+    sorted_indexes = stats['sorted_indexes_for_plot']
+    sorted_labels = np.array(config.labels)[sorted_indexes]
+    audio_clips_per_class = stats['official_balanced_trainig_samples'] + stats['official_unbalanced_training_samples']
+    audio_clips_per_class = audio_clips_per_class[sorted_indexes]
+
+    (ax1a, ax2a, ax3a, ax4a, ax1b, ax2b, ax3b, ax4b) = prepare_plot_long_4_rows(sorted_labels)
+ 
+    # plot the same data on both axes
+    ax1a.bar(np.arange(N), audio_clips_per_class, alpha=0.3)
+    ax2a.bar(np.arange(N), audio_clips_per_class, alpha=0.3)
+    ax3a.bar(np.arange(N), audio_clips_per_class, alpha=0.3)
+    ax4a.bar(np.arange(N), audio_clips_per_class, alpha=0.3)
+   
+    maps_avg_instances = stats['averaging_instance_system_avg_9_probs_from_10000_to_50000_iterations']['eval']['average_precision']
+    maps_avg_instances = maps_avg_instances[sorted_indexes]
+
+    maps_cnn13 = stats['cnn13_system_iteration60k']['eval']['average_precision']
+    maps_cnn13 = maps_cnn13[sorted_indexes]
+
+    maps_mobilenetv1 = stats['mobilenetv1_system_iteration56k']['eval']['average_precision']
+    maps_mobilenetv1 = maps_mobilenetv1[sorted_indexes]
+
+    _scatter_4_rows(maps_avg_instances, ax1b, ax2b, ax3b, ax4b, s=5, c='k')
+    _scatter_4_rows(maps_cnn13, ax1b, ax2b, ax3b, ax4b, s=5, c='r')
+    _scatter_4_rows(maps_mobilenetv1, ax1b, ax2b, ax3b, ax4b, s=5, c='b')
+    
+    line0te = _plot_4_rows(maps_avg_instances, ax1b, ax2b, ax3b, ax4b, c='k', linewidth=1.0, label='AP with averaging instances (baseline)')
+    line1te = _plot_4_rows(maps_cnn13, ax1b, ax2b, ax3b, ax4b, c='r', linewidth=1.0, label='AP with cnn13')
+    line2te = _plot_4_rows(maps_mobilenetv1, ax1b, ax2b, ax3b, ax4b, c='b', linewidth=1.0, label='AP with mobilenetv1')
+
+    label_quality = stats['label_quality']
+    sorted_rate = np.array(label_quality)[sorted_indexes]
+    for k in range(len(sorted_rate)):
+        if sorted_rate[k] and sorted_rate[k] == 1:
+            sorted_rate[k] = 0.99
+    
+    ax1b.scatter(np.arange(N)[sorted_rate != None], sorted_rate[sorted_rate != None], s=12, c='r', linewidth=0.8, marker='+')
+    ax2b.scatter(np.arange(N)[sorted_rate != None], sorted_rate[sorted_rate != None], s=12, c='r', linewidth=0.8, marker='+')
+    ax3b.scatter(np.arange(N)[sorted_rate != None], sorted_rate[sorted_rate != None], s=12, c='r', linewidth=0.8, marker='+')
+    line_label_quality = ax4b.scatter(np.arange(N)[sorted_rate != None], sorted_rate[sorted_rate != None], s=12, c='r', linewidth=0.8, marker='+', label='Label quality')
+    ax1b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
+    ax2b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
+    ax3b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
+    ax4b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
+    
+    plt.legend(handles=[line0te, line1te, line2te, line_label_quality], fontsize=6, loc=1)
+    
+    plt.savefig(save_out_path)
+    print('Save fig to {}'.format(save_out_path))
+ 
+def plot_flops(args):
+
+    # Arguments & parameters
+    workspace = args.workspace
+    
+    # Paths
+    save_out_path = 'results_map/flops.pdf'
+    create_folder(os.path.dirname(save_out_path))
+
+    plt.figure(figsize=(5, 5))
+    fig, ax = plt.subplots(1, 1)
+
+    model_types = np.array(['Cnn6', 'Cnn10', 'Cnn14', 'ResNet22', 'ResNet38', 'ResNet54', 
+        'MobileNetV1', 'MobileNetV2', 'DaiNet', 'LeeNet', 'LeeNet18', 
+        'Res1dNet30', 'Res1dNet44', 'Wavegram-CNN', 'Wavegram-\nLogmel-CNN'])
+    flops = np.array([21.986, 21.986, 42.220, 30.081, 48.962, 54.563, 3.614, 2.810, 
+        30.395, 4.741, 26.369, 32.688, 61.833, 44.234, 53.510])
+    mAPs = np.array([0.343, 0.380, 0.431, 0.430, 0.434, 0.429, 0.389, 0.383, 0.295, 
+        0.266, 0.336, 0.365, 0.355, 0.389, 0.439])
+
+    sorted_indexes = np.sort(flops)
+    ax.scatter(flops, mAPs)
+
+    shift = [[1, 0.002], [1, -0.006], [-1, -0.014], [-2, 0.006], [-7, 0.006], 
+        [1, -0.01], [0.5, 0.004], [-1, -0.014], [1, -0.007], [0.8, -0.008], 
+        [1, -0.007], [1, 0.002], [-6, -0.015], [1, -0.008], [0.8, 0]]
+
+    for i, model_type in enumerate(model_types):
+        ax.annotate(model_type, (flops[i] + shift[i][0], mAPs[i] + shift[i][1]))
+
+    ax.plot(flops[[0, 1, 2]], mAPs[[0, 1, 2]])
+    ax.plot(flops[[3, 4, 5]], mAPs[[3, 4, 5]])
+    ax.plot(flops[[6, 7]], mAPs[[6, 7]])
+    ax.plot(flops[[9, 10]], mAPs[[9, 10]])
+    ax.plot(flops[[11, 12]], mAPs[[11, 12]])
+    ax.plot(flops[[13, 14]], mAPs[[13, 14]])
+
+    ax.set_xlim(0, 70)
+    ax.set_ylim(0.2, 0.5)
+    ax.set_xlabel('Multi-adds (million)')
+    ax.set_ylabel('mAP')
+
+    plt.tight_layout(0, 0, 0)
+
+    plt.savefig(save_out_path)
+    print('Write out figure to {}'.format(save_out_path))
+
+
+def spearman(args):
+
+    # Arguments & parameters
+    workspace = args.workspace
+
+    # Paths
+    stat_path = os.path.join(workspace, 'results', 'stats_for_paper.pkl')
+
+    # Stats
+    stats = cPickle.load(open(stat_path, 'rb'))
+
+    label_quality = np.array([qu if qu else 0.5 for qu in stats['label_quality']])
+    training_samples = np.array(stats['official_balanced_trainig_samples']) + \
+        np.array(stats['official_unbalanced_training_samples'])
+    mAP = stats['averaging_instance_system_avg_9_probs_from_10000_to_50000_iterations']['eval']['average_precision']
+
+    import scipy
+    samples_spearman = scipy.stats.spearmanr(training_samples, mAP)[0]
+    quality_spearman = scipy.stats.spearmanr(label_quality, mAP)[0]
+
+    print('Training samples spearman: {:.3f}'.format(samples_spearman))
+    print('Quality spearman: {:.3f}'.format(quality_spearman))
+
+
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='')
     subparsers = parser.add_subparsers(dest='mode')
     
@@ -372,10 +1036,44 @@ if __name__ == '__main__':
     parser_plot.add_argument('--workspace', type=str, required=True)
     parser_plot.add_argument('--select', type=str, required=True)
     
+    parser_values = subparsers.add_parser('plot_class_iteration')
+    parser_values.add_argument('--workspace', type=str, required=True)
+    parser_values.add_argument('--select', type=str, required=True)
+
+    parser_summary_stats = subparsers.add_parser('summary_stats')
+    parser_summary_stats.add_argument('--workspace', type=str, required=True)
+
+    parser_plot_long = subparsers.add_parser('plot_long_fig')
+    parser_plot_long.add_argument('--workspace', type=str, required=True)
+
+    parser_plot_flops = subparsers.add_parser('plot_flops')
+    parser_plot_flops.add_argument('--workspace', type=str, required=True)
+ 
+    parser_spearman = subparsers.add_parser('spearman')
+    parser_spearman.add_argument('--workspace', type=str, required=True)
+
     args = parser.parse_args()
 
     if args.mode == 'plot':
         plot(args)
         
+    elif args.mode == 'table_values':
+        table_values(args)
+
+    elif args.mode == 'plot_class_iteration':
+        plot_class_iteration(args)
+
+    elif args.mode == 'summary_stats':
+        summary_stats(args)
+
+    elif args.mode == 'plot_long_fig':
+        plot_long_fig(args)
+
+    elif args.mode == 'plot_flops':
+        plot_flops(args)
+
+    elif args.mode == 'spearman':
+        spearman(args)
+
     else:
         raise Exception('Error argument!')
