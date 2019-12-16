@@ -85,11 +85,11 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An mean average precision (mAP) of 0.431 is obtained. 
 
-## Pretarined models
+## Pretarined models are available
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
 
 ## Inference
-Inference labels of an audio clip is simple:
+First download the pretrained models. Inference labels of an audio clip is simple!
 
 ```
 MODEL_TYPE="Cnn14"
@@ -98,11 +98,13 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference_template.py inference --window_
 ```
 
 ## Fine-tune on new tasks
-Build fine-tuned systems for new tasks is simple:
+First download the pretrained models. Build fine-tuned systems for new tasks is simple!
 
+```
 MODEL_TYPE="Transfer_Cnn14"
 CHECKPOINT_PATH="/vol/vssp/msos/qk/workspaces/pub_audioset_tagging_cnn_transfer/checkpoints_for_paper/Cnn14_mAP=0.431.pth"
 CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
+```
 
 ## Cite
 [1] Kong, Qiuqiang, Changsong Yu, Yong Xu, Turab Iqbal, Wenwu Wang, and Mark D. Plumbley. "Weakly Labelled AudioSet Tagging With Attention Neural Networks." IEEE/ACM Transactions on Audio, Speech, and Language Processing 27, no. 11 (2019): 1791-1802.
