@@ -89,7 +89,7 @@ An mean average precision (mAP) of 0.431 is obtained.
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
 
 ## Inference
-First download the pretrained models. Inference labels of an audio clip is simple!
+After downloading the pretrained models. Inference labels of an audio clip is simple!
 
 ```
 MODEL_TYPE="Cnn14"
@@ -98,7 +98,7 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference_template.py inference --window_
 ```
 
 ## Fine-tune on new tasks
-First download the pretrained models. Build fine-tuned systems for new tasks is simple!
+After downloading the pretrained models. Build fine-tuned systems for new tasks is simple!
 
 ```
 MODEL_TYPE="Transfer_Cnn14"
