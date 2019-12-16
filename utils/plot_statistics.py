@@ -572,13 +572,13 @@ def plot_class_iteration(args):
 
     fig, axs = plt.subplots(1, 3, figsize=(20, 5))
     ranges = [np.arange(0, 10), np.arange(250, 260), np.arange(517, 527)]
-    axs[0].set_ylabel('mAP')
+    axs[0].set_ylabel('AP')
 
     for col in range(0, 3):
         axs[col].set_ylim(0, 1.)
         axs[col].set_xlim(0, 301)
         axs[col].set_xlabel('Iterations')
-        axs[col].set_ylabel('mAP')
+        axs[col].set_ylabel('AP')
         axs[col].xaxis.set_ticks(np.arange(0, 301, 100))
         axs[col].xaxis.set_ticklabels(['0', '200k', '400k', '600k'])
         lines = []
@@ -594,9 +594,7 @@ def plot_class_iteration(args):
  
     plt.tight_layout(pad=4, w_pad=1, h_pad=1)
     plt.savefig(save_out_path)
-
-    import crash
-    asdf
+    print(save_out_path)
 
 
 def _load_old_metrics(workspace, filename, iteration, data_type):

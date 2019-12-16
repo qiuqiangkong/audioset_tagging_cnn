@@ -21,9 +21,11 @@ import torch.utils.data
  
 from utilities import (create_folder, get_filename, create_logging, 
     StatisticsContainer)
-from models import *
-from models2 import *
-from models3 import *
+from models import (Cnn14, Cnn14_no_specaug, Cnn14_no_dropout, 
+    Cnn6, Cnn10, ResNet22, ResNet38, ResNet54, Cnn14_emb512, Cnn14_emb128, 
+    Cnn14_emb32, MobileNetV1, MobileNetV2, LeeNet11, LeeNet24, DaiNet19, 
+    Res1dNet31, Res1dNet51, Wavegram_Cnn14, Wavegram_Logmel_Cnn14, 
+    Cnn14_DecisionLevelMax, Cnn14_DecisionLevelAtt)
 from pytorch_utils import (move_data_to_device, count_parameters, count_flops, 
     do_mixup)
 from data_generator import (AudioSetDataset, BalancedSampler, BalancedSamplerMixup, 
@@ -55,7 +57,6 @@ def train(args):
     """
 
     # Arugments & parameters
-    # dataset_dir = args.dataset_dir
     workspace = args.workspace
     data_type = args.data_type
     window_size = args.window_size
