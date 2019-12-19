@@ -17,7 +17,7 @@ import config
 
 
 class Evaluator(object):
-    def __init__(self, model, generator, cuda=True):
+    def __init__(self, model, generator):
         self.model = model
         self.generator = generator
         
