@@ -102,7 +102,7 @@ After downloading the pretrained models. Build fine-tuned systems for new tasks 
 
 ```
 MODEL_TYPE="Transfer_Cnn14"
-CHECKPOINT_PATH="/vol/vssp/msos/qk/workspaces/pub_audioset_tagging_cnn_transfer/checkpoints_for_paper/Cnn14_mAP=0.431.pth"
+CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
 CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
 ```
 
