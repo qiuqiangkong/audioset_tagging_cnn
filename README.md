@@ -85,6 +85,14 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An mean average precision (mAP) of 0.431 is obtained. 
 
+The training curve looks like:
+<img src="appendixes/mAP_figure.png">
+
+
+## Performance of differernt systems
+
+<img src="appendixes/mAP_table.png">
+
 ## Pretarined models are available
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
 
@@ -108,3 +116,8 @@ CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=
 
 ## Cite
 [1] Kong, Qiuqiang, Changsong Yu, Yong Xu, Turab Iqbal, Wenwu Wang, and Mark D. Plumbley. "Weakly Labelled AudioSet Tagging With Attention Neural Networks." IEEE/ACM Transactions on Audio, Speech, and Language Processing 27, no. 11 (2019): 1791-1802.
+
+## External links
+Other work on music transfer learning includes:
+https://github.com/jordipons/sklearn-audio-transfer-learning
+https://github.com/keunwoochoi/transfer_learning_music
