@@ -86,12 +86,16 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 An mean average precision (mAP) of 0.431 is obtained. 
 
 The training curve looks like:
+
 <img src="appendixes/mAP_figure.png" width=600>
 
+The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
 
 ## Performance of differernt systems
 
 <img src="appendixes/mAP_table.png" width=400>
+
+Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
 
 ## Pretarined models are available
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
@@ -116,6 +120,9 @@ CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=
 
 ## Cite
 [1] Kong, Qiuqiang, Changsong Yu, Yong Xu, Turab Iqbal, Wenwu Wang, and Mark D. Plumbley. "Weakly Labelled AudioSet Tagging With Attention Neural Networks." IEEE/ACM Transactions on Audio, Speech, and Language Processing 27, no. 11 (2019): 1791-1802.
+
+## Demos
+A graphical interface demo code is available at https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
 
 ## External links
 Other work on music transfer learning includes:
