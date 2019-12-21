@@ -123,6 +123,8 @@ CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=
 [1] Kong, Qiuqiang, Changsong Yu, Yong Xu, Turab Iqbal, Wenwu Wang, and Mark D. Plumbley. "Weakly Labelled AudioSet Tagging With Attention Neural Networks." IEEE/ACM Transactions on Audio, Speech, and Language Processing 27, no. 11 (2019): 1791-1802.
 
 ## Demos
+Please see the demo here: https://www.youtube.com/watch?v=7TEtDMzdLeY
+
 A graphical interface demo code is available at https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
 
 ## External links
