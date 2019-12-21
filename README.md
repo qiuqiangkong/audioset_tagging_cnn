@@ -86,12 +86,12 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 An mean average precision (mAP) of 0.431 is obtained. 
 
 The training curve looks like:
-<img src="appendixes/mAP_figure.png">
+<img src="appendixes/mAP_figure.png" width=600>
 
 
 ## Performance of differernt systems
 
-<img src="appendixes/mAP_table.png">
+<img src="appendixes/mAP_table.png" width=400>
 
 ## Pretarined models are available
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
