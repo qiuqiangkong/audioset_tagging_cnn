@@ -2,6 +2,9 @@
 
 AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs on AudioSet from scratch. 
 
+## Environments
+Python 3.7 + PyTorch 1.3.0
+
 ## Run
 ./runme.sh
 
@@ -83,9 +86,7 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 ...
 ```
 
-An mean average precision (mAP) of 0.431 is obtained. 
-
-The training curve looks like:
+An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
 <img src="appendixes/mAP_figure.png" width=600>
 
