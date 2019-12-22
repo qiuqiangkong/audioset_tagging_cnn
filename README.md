@@ -128,7 +128,7 @@ The code of the graphical interface demo is available at https://github.com/yink
 [1] Kong, Qiuqiang, Changsong Yu, Yong Xu, Turab Iqbal, Wenwu Wang, and Mark D. Plumbley. "Weakly Labelled AudioSet Tagging With Attention Neural Networks." IEEE/ACM Transactions on Audio, Speech, and Language Processing 27, no. 11 (2019): 1791-1802.
 
 ## External links
-Other work on music transfer learning includes:
-
-https://github.com/jordipons/sklearn-audio-transfer-learning
+Other work on music transfer learning includes: <br>
+https://github.com/jordipons/sklearn-audio-transfer-learning <br>
 https://github.com/keunwoochoi/transfer_learning_music
+
