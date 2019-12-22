@@ -1,6 +1,6 @@
 # AudioSet tagging with convolutional neural network (CNN) trained from scratch
 
-AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs on AudioSet from scratch. 
+AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs using the AudioSet dataset. An mean average precision (mAP) of 0.439 is obtained with our proposed Wavegram-Logmel-CNN system, outperforming the Google baseline of 0.317. The pretrained systems have been used to be fine-tuned on several audio pattern recoginition tasks, and have outperformed several previous state-of-the-art systems. The pretrained models have been released. 
 
 ## Environments
 Python 3.7 + PyTorch 1.3.0
