@@ -129,7 +129,5 @@ The code of the graphical interface demo is available at https://github.com/yink
 
 ## External links
 Other work on music transfer learning includes:
-
 https://github.com/jordipons/sklearn-audio-transfer-learning
-
 https://github.com/keunwoochoi/transfer_learning_music
