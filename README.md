@@ -120,9 +120,11 @@ CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=
 ```
 
 ## Demos
-We apply the audio tagging system to build a sound event detection (SED) system. The SED prediction is obtained by applying the audio tagging system on consecutive 2-second segments. Demos can be viewed here: https://www.youtube.com/watch?v=7TEtDMzdLeY
+We apply the audio tagging system to build a sound event detection (SED) system. The SED prediction is obtained by applying the audio tagging system on consecutive 2-second segments. The video of demo can be viewed at: <br>
+https://www.youtube.com/watch?v=7TEtDMzdLeY
 
-The code of the graphical interface demo is available at https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
+The code of the graphical interface demo is available at: <br>
+https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
 
 ## Cite
 [1] Qiuqiang Kong, Yin Cao, Turab Iqbal, Yuxuan Wang, Wenwu Wang, Mark D. Plumbley. "PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition." arXiv preprint arXiv:1912.10211 (2019).
