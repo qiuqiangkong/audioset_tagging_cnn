@@ -1,6 +1,9 @@
 # AudioSet tagging with convolutional neural network (CNN) trained from scratch
 
-AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs on AudioSet from scratch. 
+AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs using the AudioSet dataset. An mean average precision (mAP) of 0.439 is obtained with our proposed Wavegram-Logmel-CNN system, outperforming the Google baseline of 0.317. The pretrained systems have been used to be fine-tuned on several audio pattern recoginition tasks, and have outperformed several previous state-of-the-art systems. The pretrained models have been released. 
+
+## Environments
+Python 3.7 + PyTorch 1.3.0
 
 ## Run
 ./runme.sh
@@ -83,7 +86,17 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 ...
 ```
 
-An mean average precision (mAP) of 0.431 is obtained. 
+An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
+
+<img src="appendixes/mAP_figure.png" width=600>
+
+The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
+
+## Performance of differernt systems
+
+<img src="appendixes/mAP_table.png" width=400>
+
+Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
 
 ## Pretarined models are available
 The pretrained models can be downloaded from https://zenodo.org/record/3576403
@@ -106,5 +119,16 @@ CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
 CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
 ```
 
+## Demos
+We apply the audio tagging system to build a sound event detection (SED) system. The SED prediction is obtained by applying the audio tagging system on consecutive 2-second segments. Demos can be viewed here: https://www.youtube.com/watch?v=7TEtDMzdLeY
+
+The code of the graphical interface demo is available at https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
+
 ## Cite
 [1] Qiuqiang Kong, Yin Cao, Turab Iqbal, Yuxuan Wang, Wenwu Wang, Mark D. Plumbley. "PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition." arXiv preprint arXiv:1912.10211 (2019).
+
+## External links
+Other work on music transfer learning includes: <br>
+https://github.com/jordipons/sklearn-audio-transfer-learning <br>
+https://github.com/keunwoochoi/transfer_learning_music
+
