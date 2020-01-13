@@ -519,10 +519,10 @@ class Cnn10(nn.Module):
 
         self.bn0 = nn.BatchNorm2d(64)
 
-        self.conv_block1 = ConvBlock5x5(in_channels=1, out_channels=64)
-        self.conv_block2 = ConvBlock5x5(in_channels=64, out_channels=128)
-        self.conv_block3 = ConvBlock5x5(in_channels=128, out_channels=256)
-        self.conv_block4 = ConvBlock5x5(in_channels=256, out_channels=512)
+        self.conv_block1 = ConvBlock(in_channels=1, out_channels=64)
+        self.conv_block2 = ConvBlock(in_channels=64, out_channels=128)
+        self.conv_block3 = ConvBlock(in_channels=128, out_channels=256)
+        self.conv_block4 = ConvBlock(in_channels=256, out_channels=512)
 
         self.fc1 = nn.Linear(512, 512, bias=True)
         self.fc_audioset = nn.Linear(512, classes_num, bias=True)
