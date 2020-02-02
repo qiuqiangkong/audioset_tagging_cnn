@@ -148,8 +148,8 @@ class DFT(DFTBase):
 class STFT(DFTBase):
     def __init__(self, n_fft=2048, hop_length=None, win_length=None, 
         window='hann', center=True, pad_mode='reflect', freeze_parameters=True):
-        """Implementation of STFT with Conv1d. The function has the same output 
-        of librosa.core.stft
+        """Calculate spectrogram using pytorch. The STFT is implemented with 
+        Conv1d. The function has the same output of librosa.core.stft
         """
         super(STFT, self).__init__()
 
@@ -231,8 +231,8 @@ def magphase(real, imag):
 class ISTFT(DFTBase):
     def __init__(self, n_fft=2048, hop_length=None, win_length=None, 
         window='hann', center=True, pad_mode='reflect', freeze_parameters=True):
-        """Implementation of ISTFT with Conv1d. The function has the same output 
-        of librosa.core.istft
+        """Calculate spectrogram using pytorch. The STFT is implemented with 
+        Conv1d. The function has the same output of librosa.core.stft
         """
         super(ISTFT, self).__init__()
 
@@ -297,8 +297,8 @@ class ISTFT(DFTBase):
         # (batch_size, n_fft // 2 + 1, time_steps)
 
         # Full stft
-        full_real_stft = torch.cat((real_stft, torch.flip(real_stft[:, 1 : -1, :], dims=[1])), dim=1)
-        full_imag_stft = torch.cat((imag_stft, - torch.flip(imag_stft[:, 1 : -1, :], dims=[1])), dim=1)
+        full_real_stft = torch.cat((real_stft, torch.flip(real_stft[:, 1 : -1 :], dims=[1])), dim=1)
+        full_imag_stft = torch.cat((imag_stft, - torch.flip(imag_stft[:, 1 : -1 :], dims=[1])), dim=1)
 
         # Reserve space for reconstructed waveform
         if length:
