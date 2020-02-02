@@ -29,7 +29,6 @@ class DFTBase(nn.Module):
 class DFT(DFTBase):
     def __init__(self, n, norm):
         """Calculate DFT, IDFT, RDFT, IRDFT. 
-
         Args:
           n: fft window size
           norm: None | 'ortho'
@@ -49,11 +48,9 @@ class DFT(DFTBase):
 
     def dft(self, x_real, x_imag):
         """Calculate DFT of signal. 
-
         Args:
           x_real: (n,), signal real part
           x_imag: (n,), signal imag part
-
         Returns:
           z_real: (n,), output real part
           z_imag: (n,), output imag part
@@ -73,11 +70,9 @@ class DFT(DFTBase):
 
     def idft(self, x_real, x_imag):
         """Calculate IDFT of signal. 
-
         Args:
           x_real: (n,), signal real part
           x_imag: (n,), signal imag part
-
         Returns:
           z_real: (n,), output real part
           z_imag: (n,), output imag part
@@ -95,11 +90,9 @@ class DFT(DFTBase):
 
     def rdft(self, x_real):
         """Calculate right DFT of signal. 
-
         Args:
           x_real: (n,), signal real part
           x_imag: (n,), signal imag part
-
         Returns:
           z_real: (n // 2 + 1,), output real part
           z_imag: (n // 2 + 1,), output imag part
@@ -118,11 +111,9 @@ class DFT(DFTBase):
 
     def irdft(self, x_real, x_imag):
         """Calculate inverse right DFT of signal. 
-
         Args:
           x_real: (n // 2 + 1,), signal real part
           x_imag: (n // 2 + 1,), signal imag part
-
         Returns:
           z_real: (n,), output real part
           z_imag: (n,), output imag part
@@ -148,8 +139,8 @@ class DFT(DFTBase):
 class STFT(DFTBase):
     def __init__(self, n_fft=2048, hop_length=None, win_length=None, 
         window='hann', center=True, pad_mode='reflect', freeze_parameters=True):
-        """Calculate spectrogram using pytorch. The STFT is implemented with 
-        Conv1d. The function has the same output of librosa.core.stft
+        """Implementation of STFT with Conv1d. The function has the same output 
+        of librosa.core.stft
         """
         super(STFT, self).__init__()
 
@@ -199,7 +190,6 @@ class STFT(DFTBase):
 
     def forward(self, input):
         """input: (batch_size, data_length)
-
         Returns:
           real: (batch_size, n_fft // 2 + 1, time_steps)
           imag: (batch_size, n_fft // 2 + 1, time_steps)
@@ -223,16 +213,16 @@ class STFT(DFTBase):
 
 def magphase(real, imag):
     mag = (real ** 2 + imag ** 2) ** 0.5
-    cos = real / mag
-    sin = imag / mag
+    cos = real / torch.clamp(mag, 1e-10, np.inf)
+    sin = imag / torch.clamp(mag, 1e-10, np.inf)
     return mag, cos, sin
 
 
 class ISTFT(DFTBase):
     def __init__(self, n_fft=2048, hop_length=None, win_length=None, 
         window='hann', center=True, pad_mode='reflect', freeze_parameters=True):
-        """Calculate spectrogram using pytorch. The STFT is implemented with 
-        Conv1d. The function has the same output of librosa.core.stft
+        """Implementation of ISTFT with Conv1d. The function has the same output 
+        of librosa.core.istft
         """
         super(ISTFT, self).__init__()
 
@@ -284,11 +274,10 @@ class ISTFT(DFTBase):
 
     def forward(self, real_stft, imag_stft, length):
         """input: (batch_size, 1, time_steps, n_fft // 2 + 1)
-
         Returns:
           real: (batch_size, data_length)
         """
-
+        assert real_stft.ndimension() == 4 and imag_stft.ndimension() == 4
         device = next(self.parameters()).device
         batch_size = real_stft.shape[0]
 
@@ -297,8 +286,8 @@ class ISTFT(DFTBase):
         # (batch_size, n_fft // 2 + 1, time_steps)
 
         # Full stft
-        full_real_stft = torch.cat((real_stft, torch.flip(real_stft[:, 1 : -1 :], dims=[1])), dim=1)
-        full_imag_stft = torch.cat((imag_stft, - torch.flip(imag_stft[:, 1 : -1 :], dims=[1])), dim=1)
+        full_real_stft = torch.cat((real_stft, torch.flip(real_stft[:, 1 : -1, :], dims=[1])), dim=1)
+        full_imag_stft = torch.cat((imag_stft, - torch.flip(imag_stft[:, 1 : -1, :], dims=[1])), dim=1)
 
         # Reserve space for reconstructed waveform
         if length:
@@ -366,7 +355,6 @@ class Spectrogram(nn.Module):
 
     def forward(self, input):
         """input: (batch_size, 1, time_steps, n_fft // 2 + 1)
-
         Returns:
           spectrogram: (batch_size, 1, time_steps, n_fft // 2 + 1)
         """
@@ -436,6 +424,50 @@ class LogmelFilterBank(nn.Module):
         if self.top_db is not None:
             if self.top_db < 0:
                 raise ParameterError('top_db must be non-negative')
+            log_spec = torch.clamp(log_spec, min=log_spec.max().item() - self.top_db, max=np.inf)
+
+        return log_spec
+
+
+class Enframe(nn.Module):
+    def __init__(self, frame_length=2048, hop_length=512):
+        """Enframe a time sequence. This function is the pytorch implementation 
+        of librosa.util.frame
+        """
+        super(Enframe, self).__init__()
+
+        '''
+        self.enframe_conv = nn.Conv1d(in_channels=1, out_channels=frame_length, 
+            kernel_size=frame_length, stride=hop_length, 
+            padding=frame_length // 2, bias=False)
+        '''
+        self.enframe_conv = nn.Conv1d(in_channels=1, out_channels=frame_length, 
+            kernel_size=frame_length, stride=hop_length, 
+            padding=0, bias=False)
+
+        self.enframe_conv.weight.data = torch.Tensor(torch.eye(frame_length)[:, None, :])
+        self.enframe_conv.weight.requires_grad = False
+
+    def forward(self, input):
+        """input: (batch_size, samples)
+        
+        Output: (batch_size, window_length, frames_num)
+        """
+        output = self.enframe_conv(input[:, None, :])
+        return output
+
+
+    def power_to_db(self, input):
+        """Power to db, this function is the pytorch implementation of 
+        librosa.core.power_to_lb
+        """
+        ref_value = self.ref
+        log_spec = 10.0 * torch.log10(torch.clamp(input, min=self.amin, max=np.inf))
+        log_spec -= 10.0 * np.log10(np.maximum(self.amin, ref_value))
+
+        if self.top_db is not None:
+            if self.top_db < 0:
+                raise ParameterError('top_db must be non-negative')
             log_spec = torch.clamp(log_spec, min=log_spec.max() - self.top_db, max=np.inf)
 
         return log_spec
@@ -458,7 +490,6 @@ class Scalar(nn.Module):
 
 def debug(select):
     """Compare numpy + librosa and pytorch implementation result. For debug. 
-
     Args:
       select: 'dft' | 'logmel'
     """
@@ -637,6 +668,33 @@ def debug(select):
         pt_logmel_spectrogram = logmel_extractor.forward(pt_spectrogram)
         print(np.mean(np.abs(np_logmel_spectrogram - pt_logmel_spectrogram[0, 0].data.cpu().numpy())))
 
+    elif select == 'enframe':
+        data_length = 32000
+        device = torch.device('cuda') # 'cuda' | 'cpu'
+        np.random.seed(0)
+
+        # Spectrogram parameters
+        hop_length = 250
+        win_length = 1024
+        
+        # Data
+        np_data = np.random.uniform(-1, 1, data_length)
+        pt_data = torch.Tensor(np_data).to(device)
+
+        print('Comparing librosa and pytorch implementation of '
+            'librosa.util.frame. All numbers below should be close to 0.')
+
+        # Numpy librosa
+        np_frames = librosa.util.frame(np_data, frame_length=win_length, 
+            hop_length=hop_length)
+
+        # Pytorch
+        pt_frame_extractor = Enframe(frame_length=win_length, hop_length=hop_length)
+        pt_frame_extractor.to(device)
+
+        pt_frames = pt_frame_extractor(pt_data[None, :])
+        print(np.mean(np.abs(np_frames - pt_frames.data.cpu().numpy())))
+
 
 if __name__ == '__main__':
 
@@ -688,5 +746,6 @@ if __name__ == '__main__':
     # Uncomment for debug
     if True:
         debug(select='dft')
-        debug('stft')
+        debug(select='stft')
         debug(select='logmel')
+        debug(select='enframe')
