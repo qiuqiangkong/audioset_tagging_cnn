@@ -6,7 +6,7 @@ AudioSet is a large scale audio dataset containing 2 million 10-second audio cli
 Python 3.7 + PyTorch 1.3.0
 
 ## Inference using pretrained models
-Users can inference an audio recording using pretrained models. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference:
+Users can inference an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference:
 
 ```
 MODEL_TYPE="Cnn14"
