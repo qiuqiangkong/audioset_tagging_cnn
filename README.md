@@ -5,13 +5,20 @@ AudioSet is a large scale audio dataset containing 2 million 10-second audio cli
 ## Environments
 Python 3.7 + PyTorch 1.3.0
 
-## Run
-./runme.sh
+## Inference using pretrained models
+Users can inference an audio recording using pretrained models. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference:
 
-The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train CNN models. 
+```
+MODEL_TYPE="Cnn14"
+CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference_template.py inference --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
+```
+
+## Train PANNs from scrratch
+Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
 
 ## 1. Download dataset
-Users need to download the AudioSet. The runme.sh script can be used to download all data from YouTube. The total data is around 1.1 TB. Notice there can be missing files on YouTube so the numebr of files downloaded by users can be different from time to time. Our downloaded version contains 22050 / 22160 of balaned training subset, ~1.7m / 2041789 of unbalanced training subset and 18887 / 20371 evaluation subset. The downloaded data looks like:
+The runme.sh script can be used to download all AudioSet data from YouTube. The total data is around 1.1 TB. Notice there can be missing files on YouTube, so the numebr of files downloaded by users can be different from time to time. Our downloaded version contains 20550 / 22160 of the balaned training subset, 1913637 / 2041789 of the unbalanced training subset, and 18887 / 20371 of the evaluation subset. The downloaded data looks like:
 <pre>
 
 dataset_root
@@ -98,17 +105,6 @@ The transparent curves are training mAP. The dark curves are evaluation mAP. We 
 
 Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
 
-## Pretarined models are available
-The pretrained models can be downloaded from https://zenodo.org/record/3576403
-
-## Inference
-After downloading the pretrained models. Inference labels of an audio clip is simple!
-
-```
-MODEL_TYPE="Cnn14"
-CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference_template.py inference --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
-```
 
 ## Fine-tune on new tasks
 After downloading the pretrained models. Build fine-tuned systems for new tasks is simple!
