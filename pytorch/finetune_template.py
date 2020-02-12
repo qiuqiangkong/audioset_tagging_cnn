@@ -22,20 +22,16 @@ from models import *
 import config
 
 
-"""
-MODEL_TYPE="Transfer_Cnn14"
-CHECKPOINT_PATH="/vol/vssp/msos/qk/workspaces/pub_audioset_tagging_cnn_transfer/checkpoints_for_paper/Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
-"""
-
-
 class Transfer_Cnn14(nn.Module):
     def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, 
         fmax, classes_num, freeze_base):
-        
+        """Classifier for a new task using pretrained Cnn14 as a sub module.
+        """
         super(Transfer_Cnn14, self).__init__()
-
-        self.base = Cnn14(sample_rate, window_size, hop_size, mel_bins, fmin, fmax, 527)
+        audioset_classes_num = 527
+        
+        self.base = Cnn14(sample_rate, window_size, hop_size, mel_bins, fmin, 
+            fmax, audioset_classes_num)
 
         if freeze_base:
             for param in self.base.parameters():
@@ -87,6 +83,7 @@ def train(args):
     model = Model(sample_rate, window_size, hop_size, mel_bins, fmin, fmax, 
         classes_num, freeze_base)
 
+    # Load pretrained model
     if pretrain:
         logging.info('Load pretrained model from {}'.format(pretrained_checkpoint_path))
         model.load_from_pretrain(pretrained_checkpoint_path)

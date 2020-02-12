@@ -13,7 +13,7 @@ from torch.nn.parameter import Parameter
 
 from stft import Spectrogram, LogmelFilterBank
 from augmentation import SpecAugmentation
-from pytorch_utils import do_mixup
+from pytorch_utils import do_mixup, interpolate, pad_framewise_output
  
 
 def init_layer(layer):
@@ -2444,6 +2444,7 @@ class Cnn14_DecisionLevelMax(nn.Module):
         ref = 1.0
         amin = 1e-10
         top_db = None
+        self.interpolate_ratio = 32     # Downsampled ratio
 
         # Spectrogram extractor
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
@@ -2482,9 +2483,10 @@ class Cnn14_DecisionLevelMax(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
-        # t1 = time.time()
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
+
+        frames_num = x.shape[2]
         
         x = x.transpose(1, 3)
         x = self.bn0(x)
@@ -2496,7 +2498,7 @@ class Cnn14_DecisionLevelMax(nn.Module):
         # Mixup on spectrogram
         if self.training and mixup_lambda is not None:
             x = do_mixup(x, mixup_lambda)
-        
+
         x = self.conv_block1(x, pool_size=(2, 2), pool_type='avg')
         x = F.dropout(x, p=0.2, training=self.training)
         x = self.conv_block2(x, pool_size=(2, 2), pool_type='avg')
@@ -2521,7 +2523,11 @@ class Cnn14_DecisionLevelMax(nn.Module):
         segmentwise_output = torch.sigmoid(self.fc_audioset(x))
         (clipwise_output, _) = torch.max(segmentwise_output, dim=1)
 
-        output_dict = {'segmentwise_output': segmentwise_output, 
+        # Get framewise output
+        framewise_output = interpolate(segmentwise_output, self.interpolate_ratio)
+        framewise_output = pad_framewise_output(framewise_output, frames_num)
+
+        output_dict = {'framewise_output': framewise_output, 
             'clipwise_output': clipwise_output}
 
         return output_dict

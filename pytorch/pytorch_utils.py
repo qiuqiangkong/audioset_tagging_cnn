@@ -192,3 +192,35 @@ def forward(model, generator, return_input=False,
 
     return output_dict
 
+
+def interpolate(x, ratio):
+    """Interpolate the prediction to compensate the downsampling operation in a
+    CNN.
+    
+    Args:
+      x: (batch_size, time_steps, classes_num)
+      ratio: int, ratio to upsample
+    """
+    (batch_size, time_steps, classes_num) = x.shape
+    upsampled = x[:, :, None, :].repeat(1, 1, ratio, 1)
+    upsampled = upsampled.reshape(batch_size, time_steps * ratio, classes_num)
+    return upsampled
+
+
+def pad_framewise_output(framewise_output, frames_num):
+    """Pad framewise_output to the same length as input frames.
+
+    Args:
+      framewise_output: (batch_size, frames_num, classes_num)
+      frames_num: int, number of frames to pad
+
+    Outputs:
+      output: (batch_size, frames_num, classes_num)
+    """
+    pad = framewise_output[:, -1 :, :].repeat(1, frames_num - framewise_output.shape[1], 1)
+    """tensor for padding"""
+
+    output = torch.cat((framewise_output, pad), dim=1)
+    """(batch_size, frames_num, classes_num)"""
+
+    return output

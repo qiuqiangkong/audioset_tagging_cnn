@@ -6,13 +6,38 @@ AudioSet is a large scale audio dataset containing 2 million 10-second audio cli
 Python 3.7 + PyTorch 1.3.0
 
 ## Audio tagging using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference:
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
 
 ```
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference_template.py inference --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
 ```
+
+Then the result will be printed on the screen looks like:
+```
+Speech: 0.796
+Telephone bell ringing: 0.666
+Male speech, man speaking: 0.089
+Telephone: 0.084
+Inside, small room: 0.058
+Ringtone: 0.034
+Inside, large room or hall: 0.026
+Burping, eructation: 0.016
+Conversation: 0.011
+Narration, monologue: 0.008
+```
+
+## Sound event detection using pretrained models
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
+```
+MODEL_TYPE="Cnn14_DecisionLevelMax"
+CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
+```
+
+The visualization of sound event detection result looks like:
+<img src="appendixes/sed_R9_ZSCveAHg_7s.png">
 
 ## Train PANNs from scrratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
