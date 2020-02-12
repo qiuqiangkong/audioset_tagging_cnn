@@ -3,10 +3,10 @@
 AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs using the AudioSet dataset. An mean average precision (mAP) of 0.439 is obtained with our proposed Wavegram-Logmel-CNN system, outperforming the Google baseline of 0.317. The pretrained systems have been used to be fine-tuned on several audio pattern recoginition tasks, and have outperformed several previous state-of-the-art systems. The pretrained models have been released. 
 
 ## Environments
-The codebase is developed with Python 3.7.
-```
-pip3 install -r requirements.txt
-```
+The codebase is developed with Python 3.7. Install requirements as follows:
+`
+pip install -r requirements.txt
+`
 
 ## Audio tagging using pretrained models
 Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
