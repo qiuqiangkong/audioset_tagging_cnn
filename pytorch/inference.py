@@ -27,7 +27,6 @@ def audio_tagging(args):
     checkpoint_path = args.checkpoint_path
     audio_path = args.audio_path
     device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
-    filename = args.filename
 
     sample_rate = config.sample_rate
     classes_num = config.classes_num
@@ -90,7 +89,6 @@ def sound_event_detection(args):
     checkpoint_path = args.checkpoint_path
     audio_path = args.audio_path
     device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
-    filename = args.filename
 
     sample_rate = config.sample_rate
     classes_num = config.classes_num
@@ -192,7 +190,6 @@ if __name__ == '__main__':
     parser_sed.add_argument('--cuda', action='store_true', default=False)
     
     args = parser.parse_args()
-    args.filename = get_filename(__file__)
 
     if args.mode == 'audio_tagging':
         audio_tagging(args)
