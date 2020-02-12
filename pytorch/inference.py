@@ -95,7 +95,6 @@ def sound_event_detection(args):
     labels = config.labels
     frames_per_second = sample_rate // hop_size
 
-
     # Paths
     fig_path = os.path.join('results', '{}.png'.format(get_filename(audio_path)))
     create_folder(os.path.dirname(fig_path))
