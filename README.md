@@ -4,19 +4,17 @@ AudioSet is a large scale audio dataset containing 2 million 10-second audio cli
 
 ## Environments
 The codebase is developed with Python 3.7. Install requirements as follows:
-
-`
+```
 pip install -r requirements.txt
-`
+```
 
 ## Audio tagging using pretrained models
 Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
-
-`
+```
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
-`
+```
 
 Then the result will be printed on the screen looks like:
 ```
@@ -34,12 +32,11 @@ Narration, monologue: 0.008
 
 ## Sound event detection using pretrained models
 Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
-
-`
+```
 MODEL_TYPE="Cnn14_DecisionLevelMax"
 CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
-`
+```
 
 The visualization of sound event detection result looks like:
 <img src="appendixes/sed_R9_ZSCveAHg_7s.png">
