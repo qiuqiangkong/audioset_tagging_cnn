@@ -2533,11 +2533,11 @@ class Cnn14_DecisionLevelMax(nn.Module):
         return output_dict
 
 
-class Cnn13_DecisionLevelAvg(nn.Module):
+class Cnn14_DecisionLevelAvg(nn.Module):
     def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, 
         fmax, classes_num):
         
-        super(Cnn13_DecisionLevelAvg, self).__init__()
+        super(Cnn14_DecisionLevelAvg, self).__init__()
 
         window = 'hann'
         center = True
@@ -2545,6 +2545,7 @@ class Cnn13_DecisionLevelAvg(nn.Module):
         ref = 1.0
         amin = 1e-10
         top_db = None
+        self.interpolate_ratio = 32     # Downsampled ratio
 
         # Spectrogram extractor
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
@@ -2586,6 +2587,8 @@ class Cnn13_DecisionLevelAvg(nn.Module):
         # t1 = time.time()
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
+
+        frames_num = x.shape[2]
         
         x = x.transpose(1, 3)
         x = self.bn0(x)
@@ -2622,7 +2625,15 @@ class Cnn13_DecisionLevelAvg(nn.Module):
         segmentwise_output = torch.sigmoid(self.fc_audioset(x))
         clipwise_output = torch.mean(segmentwise_output, dim=1)
 
-        output_dict = {'segmentwise_output': segmentwise_output, 
+        # Get framewise output
+        framewise_output = interpolate(segmentwise_output, self.interpolate_ratio)
+        framewise_output = pad_framewise_output(framewise_output, frames_num)
+
+        # Get framewise output
+        framewise_output = interpolate(segmentwise_output, self.interpolate_ratio)
+        framewise_output = pad_framewise_output(framewise_output, frames_num)
+
+        output_dict = {'framewise_output': framewise_output, 
             'clipwise_output': clipwise_output}
 
         return output_dict
@@ -2640,6 +2651,7 @@ class Cnn14_DecisionLevelAtt(nn.Module):
         ref = 1.0
         amin = 1e-10
         top_db = None
+        self.interpolate_ratio = 32     # Downsampled ratio
 
         # Spectrogram extractor
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
@@ -2680,6 +2692,8 @@ class Cnn14_DecisionLevelAtt(nn.Module):
         # t1 = time.time()
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
+
+        frames_num = x.shape[2]
         
         x = x.transpose(1, 3)
         x = self.bn0(x)
@@ -2717,7 +2731,11 @@ class Cnn14_DecisionLevelAtt(nn.Module):
         (clipwise_output, _, segmentwise_output) = self.att_block(x)
         segmentwise_output = segmentwise_output.transpose(1, 2)
 
-        output_dict = {'segmentwise_output': segmentwise_output, 
+        # Get framewise output
+        framewise_output = interpolate(segmentwise_output, self.interpolate_ratio)
+        framewise_output = pad_framewise_output(framewise_output, frames_num)
+
+        output_dict = {'framewise_output': framewise_output, 
             'clipwise_output': clipwise_output}
 
         return output_dict
