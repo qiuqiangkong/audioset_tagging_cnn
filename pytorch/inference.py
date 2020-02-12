@@ -31,6 +31,7 @@ def audio_tagging(args):
 
     sample_rate = config.sample_rate
     classes_num = config.classes_num
+    labels = config.labels
 
     # Model
     Model = eval(model_type)
@@ -65,12 +66,14 @@ def audio_tagging(args):
 
     # Print audio tagging top probabilities
     for k in range(10):
-        print('{}: {:.3f}'.format(np.array(config.labels)[sorted_indexes[k]], 
+        print('{}: {:.3f}'.format(np.array(labels)[sorted_indexes[k]], 
             clipwise_output[sorted_indexes[k]]))
 
     if 'embedding' in batch_output_dict.keys():
         embedding = batch_output_dict['embedding'].data.cpu().numpy()[0]
         print('embedding: {}'.format(embedding.shape))
+
+    return clipwise_output, labels
 
 
 def sound_event_detection(args):
@@ -91,7 +94,9 @@ def sound_event_detection(args):
 
     sample_rate = config.sample_rate
     classes_num = config.classes_num
+    labels = config.labels
     frames_per_second = sample_rate // hop_size
+
 
     # Paths
     fig_path = os.path.join('results', '{}.png'.format(get_filename(audio_path)))
@@ -147,7 +152,7 @@ def sound_event_detection(args):
     axs[1].xaxis.set_ticks(np.arange(0, frames_num, frames_per_second))
     axs[1].xaxis.set_ticklabels(np.arange(0, frames_num / frames_per_second))
     axs[1].yaxis.set_ticks(np.arange(0, top_k))
-    axs[1].yaxis.set_ticklabels(np.array(config.labels)[sorted_indexes[0 : top_k]])
+    axs[1].yaxis.set_ticklabels(np.array(labels)[sorted_indexes[0 : top_k]])
     axs[1].yaxis.grid(color='k', linestyle='solid', linewidth=0.3, alpha=0.3)
     axs[1].set_xlabel('Seconds')
     axs[1].xaxis.set_ticks_position('bottom')
@@ -155,6 +160,8 @@ def sound_event_detection(args):
     plt.tight_layout()
     plt.savefig(fig_path)
     print('Save sound event detection visualization to {}'.format(fig_path))
+
+    return framewise_output, labels
 
 
 if __name__ == '__main__':
