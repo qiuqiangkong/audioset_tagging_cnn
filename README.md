@@ -41,6 +41,8 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --mode
 The visualization of sound event detection result looks like:
 <img src="appendixes/sed_R9_ZSCveAHg_7s.png">
 
+Please see https://www.youtube.com/watch?v=QyFNIhRxFrY for the sound event detection video demo, and https://github.com/yinkalario/Sound-Event-Detection-AudioSet for the demo code.
+
 ## Train PANNs from scrratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
 
