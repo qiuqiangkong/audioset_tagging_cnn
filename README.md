@@ -1,6 +1,6 @@
 # PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition
 
-AudioSet is a large scale audio dataset containing 2 million 10-second audio clips with an ontology of 527 sound classes. The status of AudioSet is similar to ImageNet in computer vision. This codebase provides training a variety of CNNs using the AudioSet dataset. An mean average precision (mAP) of 0.439 is obtained with our proposed Wavegram-Logmel-CNN system, outperforming the Google baseline of 0.317. The pretrained systems have been used to be fine-tuned on several audio pattern recoginition tasks, and have outperformed several previous state-of-the-art systems. The pretrained models have been released. 
+This repo contains code for our paper: PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition [1]. In this repo, a variety of CNNs are trained on the large-scale AudioSet dataset [2] containing 5000 hours audio with 527 sound classes. A mean average precision (mAP) of 0.439 is achieved using our proposed Wavegram-Logmel-CNN system, outperforming the Google baseline of 0.317 [3]. The PANNs have been used for audio tagging and sound event detection. The PANNs have been used to fine-tune several audio pattern recoginition tasks, and have outperformed several state-of-the-art systems. 
 
 ## Environments
 The codebase is developed with Python 3.7. Install requirements as follows:
@@ -153,6 +153,11 @@ https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
 
 ## Cite
 [1] Qiuqiang Kong, Yin Cao, Turab Iqbal, Yuxuan Wang, Wenwu Wang, Mark D. Plumbley. "PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition." arXiv preprint arXiv:1912.10211 (2019).
+
+## Reference
+[2] Gemmeke, J.F., Ellis, D.P., Freedman, D., Jansen, A., Lawrence, W., Moore, R.C., Plakal, M. and Ritter, M., 2017, March. Audio set: An ontology and human-labeled dataset for audio events. In IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), pp. 776-780, 2017
+
+[3] Hershey, S., Chaudhuri, S., Ellis, D.P., Gemmeke, J.F., Jansen, A., Moore, R.C., Plakal, M., Platt, D., Saurous, R.A., Seybold, B. and Slaney, M., 2017, March. CNN architectures for large-scale audio classification. In 2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), pp. 131-135, 2017
 
 ## External links
 Other work on music transfer learning includes: <br>
