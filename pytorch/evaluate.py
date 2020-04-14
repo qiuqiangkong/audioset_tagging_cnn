@@ -1,27 +1,26 @@
-import os
-import sys
-sys.path.insert(1, os.path.join(sys.path[0], '../utils'))
-
-import numpy as np
-import time
-import logging
-import matplotlib.pyplot as plt
 from sklearn import metrics
-import _pickle as cPickle
-import datetime
-from utilities import d_prime
 
-from utilities import get_filename
 from pytorch_utils import forward
-import config
 
 
 class Evaluator(object):
     def __init__(self, model, generator):
+        """Evaluator.
+
+        Args:
+          model: object
+          generator: object
+        """
         self.model = model
         self.generator = generator
         
     def evaluate(self):
+        """Forward evaluation data and calculate statistics.
+
+        Returns:
+          statistics: dict, 
+              {'average_precision': (classes_num,), 'auc': (classes_num,)}
+        """
 
         # Forward
         output_dict = forward(

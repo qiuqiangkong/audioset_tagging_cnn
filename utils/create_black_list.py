@@ -13,11 +13,9 @@ def dcase2017task4(args):
     # Augments & parameters
     workspace = args.workspace
     
-    # Paths
-    dcase2017task4_dataset_dir = '/vol/vssp/msos/qk/datasets/dcase2017/task4/dataset_root'
-
-    test_weak_csv = os.path.join(dcase2017task4_dataset_dir, 'metadata/groundtruth_weak_label_testing_set.csv')
-    evaluation_weak_csv = os.path.join(dcase2017task4_dataset_dir, 'metadata/groundtruth_weak_label_evaluation_set.csv')
+    # Black list from DCASE 2017 Task 4
+    test_weak_csv = 'metadata/black_list/groundtruth_weak_label_testing_set.csv'
+    evaluation_weak_csv = 'metadata/black_list/groundtruth_weak_label_evaluation_set.csv'
     
     black_list_csv = os.path.join(workspace, 'black_list', 'dcase2017task4.csv')
     create_folder(os.path.dirname(black_list_csv))
@@ -30,6 +28,7 @@ def dcase2017task4(args):
         ids_set = [] 
         
         for line in lines:
+            """line: ['-5QrBL6MzLg_60.000_70.000.wav', '60.000', '70.000', 'Train horn']"""
             ids_set.append(line[0][0 : 11])
             
         ids_set = list(set(ids_set))

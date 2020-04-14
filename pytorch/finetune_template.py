@@ -33,11 +33,13 @@ class Transfer_Cnn14(nn.Module):
         self.base = Cnn14(sample_rate, window_size, hop_size, mel_bins, fmin, 
             fmax, audioset_classes_num)
 
+        # Transfer to another task layer
+        self.fc_transfer = nn.Linear(2048, classes_num, bias=True)
+
         if freeze_base:
+            # Freeze AudioSet pretrained layers
             for param in self.base.parameters():
                 param.requires_grad = False
-        
-        self.fc_transfer = nn.Linear(2048, classes_num, bias=True)
 
         self.init_weights()
 
@@ -47,11 +49,10 @@ class Transfer_Cnn14(nn.Module):
     def load_from_pretrain(self, pretrained_checkpoint_path):
         checkpoint = torch.load(pretrained_checkpoint_path)
         self.base.load_state_dict(checkpoint['model'])
-        
 
     def forward(self, input, mixup_lambda=None):
-        '''
-        Input: (batch_size, data_length)'''
+        """Input: (batch_size, data_length)
+        """
         output_dict = self.base(input, mixup_lambda)
         embedding = output_dict['embedding']
 

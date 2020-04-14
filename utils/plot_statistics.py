@@ -28,7 +28,7 @@ def plot(args):
     class_labels_indices_path = os.path.join(dataset_dir, 'metadata', 
         'class_labels_indices.csv')
         
-    save_out_path = 'results_map/{}.pdf'.format(select)
+    save_out_path = 'results/{}.pdf'.format(select)
     create_folder(os.path.dirname(save_out_path))
     
     # Read labels
@@ -349,6 +349,56 @@ def plot(args):
             320, 64, 50, 14000, 'full_train', 'Cnn13_Transformer6', 'clip_bce', 'balanced', 'mixup', 32)
         line, = ax.plot(bal_map, color='k', alpha=bal_alpha)
         line, = ax.plot(test_map, label='Cnn13_Transformer6', color='k', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_aug':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,mixup', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,none,none', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,none', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup_from_0_epoch', 32)
+        line, = ax.plot(bal_map, color='m', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,mixup_from_0_epoch', color='m', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_bal_train_aug':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,mixup', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,none,none', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,none', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup_from_0_epoch', 32)
+        line, = ax.plot(bal_map, color='m', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,balanced,mixup_from_0_epoch', color='m', alpha=test_alpha)
         lines.append(line)
 
     ax.set_ylim(0, 1.)
