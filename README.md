@@ -18,16 +18,17 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --model_type=$
 
 Then the result will be printed on the screen looks like:
 ```
-Speech: 0.796
-Telephone bell ringing: 0.666
-Male speech, man speaking: 0.089
-Telephone: 0.084
-Inside, small room: 0.058
-Ringtone: 0.034
-Inside, large room or hall: 0.026
-Burping, eructation: 0.016
-Conversation: 0.011
-Narration, monologue: 0.008
+Speech: 0.893
+Telephone bell ringing: 0.754
+Inside, small room: 0.235
+Telephone: 0.183
+Music: 0.092
+Ringtone: 0.047
+Inside, large room or hall: 0.028
+Alarm: 0.014
+Animal: 0.009
+Vehicle: 0.008
+embedding: (2048,)
 ```
 
 ## Sound event detection using pretrained models
@@ -71,7 +72,7 @@ dataset_root
 </pre>
 
 ## 2. Pack data to hdf5
-Loading wav format files is slow. Also storing millions of files on disk is inefficient. We pack wavs to big hdf5 files, 1 for balanced training subset, 1 for evaluation subset and 41 for unbalanced traning subset. The packed files looks like:
+Loading wav format files is slow, and storing millions of files on disk is inefficient. To speed up training, we pack 2 million wavs to 43 hdf5 files: one for balanced training subset, one for evaluation subset and 41 for unbalanced traning subset. The packed files looks like:
 
 <pre>
 workspace
@@ -141,7 +142,7 @@ After downloading the pretrained models. Build fine-tuned systems for new tasks 
 ```
 MODEL_TYPE="Transfer_Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=1 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
 ```
 
 ## Demos

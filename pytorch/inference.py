@@ -68,6 +68,7 @@ def audio_tagging(args):
         print('{}: {:.3f}'.format(np.array(labels)[sorted_indexes[k]], 
             clipwise_output[sorted_indexes[k]]))
 
+    # Print embedding
     if 'embedding' in batch_output_dict.keys():
         embedding = batch_output_dict['embedding'].data.cpu().numpy()[0]
         print('embedding: {}'.format(embedding.shape))
@@ -128,7 +129,8 @@ def sound_event_detection(args):
     framewise_output = batch_output_dict['framewise_output'].data.cpu().numpy()[0]
     """(time_steps, classes_num)"""
 
-    print('Sound event detection result (time_steps x classes_num): {}'.format(framewise_output.shape))
+    print('Sound event detection result (time_steps x classes_num): {}'.format(
+        framewise_output.shape))
 
     sorted_indexes = np.argsort(np.max(framewise_output, axis=0))[::-1]
 
