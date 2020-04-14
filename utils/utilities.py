@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats 
 import datetime
-import _pickle as cPickle
+import pickle
 
 
 def create_folder(fd):
@@ -56,6 +56,42 @@ def create_logging(log_dir, filemode):
     return logging
 
 
+def read_metadata(csv_path, classes_num, id_to_ix):
+    """Read metadata of AudioSet from a csv file.
+
+    Args:
+      csv_path: str
+
+    Returns:
+      meta_dict: {'audio_name': (audios_num,), 'target': (audios_num, classes_num)}
+    """
+
+    with open(csv_path, 'r') as fr:
+        lines = fr.readlines()
+        lines = lines[3:]   # Remove heads
+
+    audios_num = len(lines)
+    targets = np.zeros((audios_num, classes_num), dtype=np.bool)
+    audio_names = []
+ 
+    for n, line in enumerate(lines):
+        items = line.split(', ')
+        """items: ['--4gqARaEJE', '0.000', '10.000', '"/m/068hy,/m/07q6cd_,/m/0bt9lr,/m/0jbk"\n']"""
+
+        audio_name = 'Y{}.wav'.format(items[0])   # Audios are started with an extra 'Y' when downloading
+        label_ids = items[3].split('"')[1].split(',')
+
+        audio_names.append(audio_name)
+
+        # Target
+        for id in label_ids:
+            ix = id_to_ix[id]
+            targets[n, ix] = 1
+    
+    meta_dict = {'audio_name': np.array(audio_names), 'target': targets}
+    return meta_dict
+
+
 def float32_to_int16(x):
     assert np.max(np.abs(x)) <= 1.
     return (x * 32767.).astype(np.int16)
@@ -79,6 +115,8 @@ def d_prime(auc):
 
 class StatisticsContainer(object):
     def __init__(self, statistics_path):
+        """Contain statistics of different training iterations.
+        """
         self.statistics_path = statistics_path
 
         self.backup_statistics_path = '{}_{}.pickle'.format(
@@ -92,13 +130,13 @@ class StatisticsContainer(object):
         self.statistics_dict[data_type].append(statistics)
         
     def dump(self):
-        cPickle.dump(self.statistics_dict, open(self.statistics_path, 'wb'))
-        cPickle.dump(self.statistics_dict, open(self.backup_statistics_path, 'wb'))
+        pickle.dump(self.statistics_dict, open(self.statistics_path, 'wb'))
+        pickle.dump(self.statistics_dict, open(self.backup_statistics_path, 'wb'))
         logging.info('    Dump statistics to {}'.format(self.statistics_path))
         logging.info('    Dump statistics to {}'.format(self.backup_statistics_path))
         
     def load_state_dict(self, resume_iteration):
-        self.statistics_dict = cPickle.load(open(self.statistics_path, 'rb'))
+        self.statistics_dict = pickle.load(open(self.statistics_path, 'rb'))
 
         resume_statistics_dict = {'bal': [], 'test': []}
         

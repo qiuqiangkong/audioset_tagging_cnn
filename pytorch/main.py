@@ -9,7 +9,6 @@ import time
 import logging
 import matplotlib.pyplot as plt
 from sklearn import metrics
-import _pickle as cPickle
 
 import torch
 torch.backends.cudnn.benchmark=True
@@ -24,15 +23,69 @@ from utilities import (create_folder, get_filename, create_logging,
 from models import (Cnn14, Cnn14_no_specaug, Cnn14_no_dropout, 
     Cnn6, Cnn10, ResNet22, ResNet38, ResNet54, Cnn14_emb512, Cnn14_emb128, 
     Cnn14_emb32, MobileNetV1, MobileNetV2, LeeNet11, LeeNet24, DaiNet19, 
-    Res1dNet31, Res1dNet51, Wavegram_Cnn14, Wavegram_Logmel_Cnn14, 
-    Cnn14_DecisionLevelMax, Cnn14_DecisionLevelAtt)
+    Res1dNet31, Res1dNet51, Wavegram_Cnn14, Wavegram_Logmel_Cnn14, Cnn14_16k,
+    Cnn14_8k, Cnn14_mixup_time_domain, Cnn14_DecisionLevelMax, 
+    Cnn14_DecisionLevelAtt)
 from pytorch_utils import (move_data_to_device, count_parameters, count_flops, 
     do_mixup)
-from data_generator import (AudioSetDataset, BalancedSampler, BalancedSamplerMixup, 
-    EvaluateSampler, Collator)
+from data_generator import (AudioSetDataset, Sampler, BalancedSampler, 
+    BalancedMixupSampler, EvaluateSampler, Collator)
 from evaluate import Evaluator
 import config
 from losses import get_loss_func
+
+
+def get_train_sampler(balanced, augmentation, train_indexes_hdf5_path, 
+    black_list_csv, batch_size):
+    """Get train sampler.
+
+    Args:
+      balanced: str
+      augmentation: str
+      train_indexes_hdf5_path: str
+      black_list_csv: str
+      batch_size: int
+
+    Returns:
+      train_sampler: object
+      train_collector: object
+    """
+    if balanced == 'none':
+        train_sampler = Sampler(indexes_hdf5_path=train_indexes_hdf5_path, 
+            black_list_csv=black_list_csv, batch_size=batch_size)
+        train_collector = Collator(mixup_alpha=None)
+
+    elif balanced == 'balanced':
+        if augmentation == 'none':
+            train_sampler = BalancedSampler(
+                indexes_hdf5_path=train_indexes_hdf5_path, 
+                black_list_csv=black_list_csv, batch_size=batch_size)
+            train_collector = Collator(mixup_alpha=None)
+
+        elif 'mixup' in augmentation:
+            if augmentation == 'mixup_from_0_epoch':
+                start_mix_epoch = 0
+            elif augmentation == 'mixup':
+                start_mix_epoch = 1
+            else:
+                raise Exception('Incorrect augmentation!')
+
+            assert batch_size % torch.cuda.device_count() == 0, \
+                'To let mixup working properly this must be satisfied.'
+
+            train_sampler = BalancedMixupSampler(
+                indexes_hdf5_path=train_indexes_hdf5_path, 
+                black_list_csv=black_list_csv, batch_size=batch_size * 2, 
+                start_mix_epoch=start_mix_epoch)
+            train_collector = Collator(mixup_alpha=1.)
+
+        else:
+            raise Exception('Incorrect augmentation!')
+
+    else:
+        raise Exception('Incorrect balanced type!')
+
+    return train_sampler, train_collector
 
 
 def train(args):
@@ -77,29 +130,22 @@ def train(args):
 
     num_workers = 8
     sample_rate = config.sample_rate
-    audio_length = config.audio_length
+    clip_samples = config.clip_samples
     classes_num = config.classes_num
     loss_func = get_loss_func(loss_type)
 
     # Paths
     black_list_csv = os.path.join(workspace, 'black_list', 'dcase2017task4.csv')
     
-    waveform_hdf5s_dir = os.path.join(workspace, 'hdf5s', 'waveforms')
+    train_indexes_hdf5_path = os.path.join(workspace, 'hdf5s', 'indexes', 
+        '{}.h5'.format(data_type))
 
-    # Target hdf5 path
-    eval_train_targets_hdf5_path = os.path.join(workspace, 
-        'hdf5s', 'targets', 'balanced_train.h5')
+    eval_bal_indexes_hdf5_path = os.path.join(workspace, 
+        'hdf5s', 'indexes', 'balanced_train.h5')
 
-    eval_test_targets_hdf5_path = os.path.join(workspace, 'hdf5s', 'targets', 
+    eval_test_indexes_hdf5_path = os.path.join(workspace, 'hdf5s', 'indexes', 
         'eval.h5')
 
-    if data_type == 'balanced_train':
-        train_targets_hdf5_path = os.path.join(workspace, 'hdf5s', 'targets', 
-            'balanced_train.h5')
-    elif data_type == 'full_train':
-        train_targets_hdf5_path = os.path.join(workspace, 'hdf5s', 'targets', 
-            'full_train.h5')
-        
     checkpoints_dir = os.path.join(workspace, 'checkpoints', filename, 
         'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
         sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
@@ -141,74 +187,43 @@ def train(args):
         classes_num=classes_num)
      
     params_num = count_parameters(model)
-    # flops_num = count_flops(model, audio_length)
+    # flops_num = count_flops(model, clip_samples)
     logging.info('Parameters num: {}'.format(params_num))
     # logging.info('Flops num: {:.3f} G'.format(flops_num / 1e9))
     
-    # Dataset will be used by DataLoader later. Provide an index and return 
-    # waveform and target of audio
-    train_dataset = AudioSetDataset(
-        target_hdf5_path=train_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir, 
-        audio_length=audio_length, 
-        classes_num=classes_num)
+    # Dataset will be used by DataLoader later. Dataset takes a meta as input 
+    # and return a waveform and a target.
+    dataset = AudioSetDataset(clip_samples=clip_samples, classes_num=classes_num)
 
-    bal_dataset = AudioSetDataset(
-        target_hdf5_path=eval_train_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir, 
-        audio_length=audio_length, 
-        classes_num=classes_num)
-
-    test_dataset = AudioSetDataset(
-        target_hdf5_path=eval_test_targets_hdf5_path, 
-        waveform_hdf5s_dir=waveform_hdf5s_dir, 
-        audio_length=audio_length, 
-        classes_num=classes_num)
-
-    # Sampler
-    if balanced == 'balanced':
-        if 'mixup' in augmentation:
-            train_sampler = BalancedSamplerMixup(
-                target_hdf5_path=train_targets_hdf5_path, 
-                black_list_csv=black_list_csv, batch_size=batch_size, 
-                start_mix_epoch=1)
-            train_collector = Collator(mixup_alpha=1.)
-            assert batch_size % torch.cuda.device_count() == 0, 'To let mixup working properly this must be satisfied.'
-        else:
-            train_sampler = BalancedSampler(
-                target_hdf5_path=train_targets_hdf5_path, 
-                black_list_csv=black_list_csv, batch_size=batch_size)
-            train_collector = Collator(mixup_alpha=None)
+    # Train sampler
+    (train_sampler, train_collector) = get_train_sampler(balanced, augmentation,
+        train_indexes_hdf5_path, black_list_csv, batch_size)
     
-    bal_sampler = EvaluateSampler(dataset_size=len(bal_dataset), 
-        batch_size=batch_size)
+    # Evaluate sampler
+    eval_bal_sampler = EvaluateSampler(
+        indexes_hdf5_path=eval_bal_indexes_hdf5_path, batch_size=batch_size)
 
-    test_sampler = EvaluateSampler(dataset_size=len(test_dataset), 
-        batch_size=batch_size)
+    eval_test_sampler = EvaluateSampler(
+        indexes_hdf5_path=eval_test_indexes_hdf5_path, batch_size=batch_size)
 
     eval_collector = Collator(mixup_alpha=None)
     
     # Data loader
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
+    train_loader = torch.utils.data.DataLoader(dataset=dataset, 
         batch_sampler=train_sampler, collate_fn=train_collector, 
         num_workers=num_workers, pin_memory=True)
     
-    bal_loader = torch.utils.data.DataLoader(dataset=bal_dataset, 
-        batch_sampler=bal_sampler, collate_fn=eval_collector, 
+    eval_bal_loader = torch.utils.data.DataLoader(dataset=dataset, 
+        batch_sampler=eval_bal_sampler, collate_fn=eval_collector, 
         num_workers=num_workers, pin_memory=True)
 
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
-        batch_sampler=test_sampler, collate_fn=eval_collector, 
+    eval_test_loader = torch.utils.data.DataLoader(dataset=dataset, 
+        batch_sampler=eval_test_sampler, collate_fn=eval_collector, 
         num_workers=num_workers, pin_memory=True)
 
     # Evaluator
-    bal_evaluator = Evaluator(
-        model=model, 
-        generator=bal_loader)
-    
-    test_evaluator = Evaluator(
-        model=model, 
-        generator=test_loader)
+    bal_evaluator = Evaluator(model=model, generator=eval_bal_loader)
+    test_evaluator = Evaluator(model=model, generator=eval_test_loader)
         
     # Statistics
     statistics_container = StatisticsContainer(statistics_path)
@@ -246,14 +261,16 @@ def train(args):
     if 'cuda' in str(device):
         model.to(device)
     
-    t_ = time.time()
+    time1 = time.time()
     
     for batch_data_dict in train_loader:
-        
-        """batch_list_data_dict: 
-            [{'audio_name': 'YtwJdQzi7x7Q.wav', 'waveform': (audio_length,), 'target': (classes_num)}, 
-            ...]"""
-        
+        """batch_data_dict: {
+            'audio_name': (batch_size [*2 if mixup],), 
+            'waveform': (batch_size [*2 if mixup], clip_samples), 
+            'target': (batch_size [*2 if mixup], classes_num), 
+            (ifexist) 'mixup_lambda': (batch_size * 2,)}
+        """
+
         # Evaluate
         if (iteration % 2000 == 0 and iteration > resume_iteration) or (iteration == 0):
             train_fin_time = time.time()
@@ -304,12 +321,21 @@ def train(args):
         model.train()
 
         if 'mixup' in augmentation:
-            batch_output_dict = model(batch_data_dict['waveform'], batch_data_dict['mixup_lambda'])
-            batch_target_dict = {'target': do_mixup(batch_data_dict['target'], batch_data_dict['mixup_lambda'])}
+            batch_output_dict = model(batch_data_dict['waveform'], 
+                batch_data_dict['mixup_lambda'])
+            """{'clipwise_output': (batch_size, classes_num), ...}"""
+
+            batch_target_dict = {'target': do_mixup(batch_data_dict['target'], 
+                batch_data_dict['mixup_lambda'])}
+            """{'target': (batch_size, classes_num)}"""
         else:
             batch_output_dict = model(batch_data_dict['waveform'], None)
-            batch_target_dict = {'target': batch_data_dict['target']}
+            """{'clipwise_output': (batch_size, classes_num), ...}"""
 
+            batch_target_dict = {'target': batch_data_dict['target']}
+            """{'target': (batch_size, classes_num)}"""
+
+        # Loss
         loss = loss_func(batch_output_dict, batch_target_dict)
 
         # Backward
@@ -320,8 +346,9 @@ def train(args):
         optimizer.zero_grad()
         
         if iteration % 10 == 0:
-            print(iteration, 'time: {:.3f}'.format(time.time() - t_))
-            t_ = time.time()
+            print('--- Iteration: {}, train time: {:.3f} s / 10 iterations ---'\
+                .format(iteration, time.time() - time1))
+            time1 = time.time()
         
         iteration += 1
 
