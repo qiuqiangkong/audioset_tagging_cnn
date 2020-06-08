@@ -2,6 +2,19 @@
 DATASET_DIR="/vol/vssp/datasets/audio/audioset/audioset201906"
 WORKSPACE="/vol/vssp/cvpnobackup/scratch_4weeks/qk00006/workspaces/pub_audioset_tagging_cnn_transfer"
 
+# ============ Inference with pretrained modela ============
+# Inference audio tagging with pretrained model
+MODEL_TYPE="Cnn14"
+CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
+wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3576403/files/Cnn14_mAP%3D0.431.pth?download=1"
+python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
+
+# Inference sound event detection with pretrained model
+MODEL_TYPE="Cnn14_DecisionLevelMax"
+CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
+wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3576403/files/Cnn14_DecisionLevelMax_mAP%3D0.385.pth?download=1"
+python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
+
 # ============ Download dataset ============
 echo "------ Download metadata ------"
 mkdir -p $DATASET_DIR"/metadata"
