@@ -55,8 +55,9 @@ def audio_tagging(args):
     waveform = move_data_to_device(waveform, device)
 
     # Forward
-    model.eval()
-    batch_output_dict = model(waveform, None)
+    with torch.no_grad():
+        model.eval()
+        batch_output_dict = model(waveform, None)
 
     clipwise_output = batch_output_dict['clipwise_output'].data.cpu().numpy()[0]
     """(classes_num,)"""
@@ -123,8 +124,9 @@ def sound_event_detection(args):
     waveform = move_data_to_device(waveform, device)
 
     # Forward
-    model.eval()
-    batch_output_dict = model(waveform, None)
+    with torch.no_grad():
+        model.eval()
+        batch_output_dict = model(waveform, None)
 
     framewise_output = batch_output_dict['framewise_output'].data.cpu().numpy()[0]
     """(time_steps, classes_num)"""
