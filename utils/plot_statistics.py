@@ -14,6 +14,85 @@ from utilities import (create_folder, get_filename, d_prime)
 import config
 
 
+def _load_metrics0(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+    fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+    workspace0 = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/workspaces/pub_audioset_tagging_cnn_transfer'
+    statistics_path = os.path.join(workspace0, 'statistics', filename, 
+        'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+        sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+        'data_type={}'.format(data_type), model_type, 
+        'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+        'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+        'statistics.pkl')
+
+    statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+    bal_map = np.array([statistics['average_precision'] for statistics in statistics_dict['bal']])    # (N, classes_num)
+    bal_map = np.mean(bal_map, axis=-1)
+    test_map = np.array([statistics['average_precision'] for statistics in statistics_dict['test']])    # (N, classes_num)
+    test_map = np.mean(test_map, axis=-1)
+    legend = '{}, {}, bal={}, aug={}, bs={}'.format(data_type, model_type, balanced, augmentation, batch_size)
+
+    # return {'bal_map': bal_map, 'test_map': test_map, 'legend': legend}
+    return bal_map, test_map, legend
+
+
+def _load_metrics0_classwise(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+    fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+    workspace0 = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/workspaces/pub_audioset_tagging_cnn_transfer'
+    statistics_path = os.path.join(workspace0, 'statistics', filename, 
+        'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+        sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+        'data_type={}'.format(data_type), model_type, 
+        'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+        'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+        'statistics.pkl')
+
+    statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+    return statistics_dict['test'][300]['average_precision']
+
+
+def _load_metrics0_classwise2(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+    fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+    workspace0 = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/workspaces/pub_audioset_tagging_cnn_transfer'
+    statistics_path = os.path.join(workspace0, 'statistics', filename, 
+        'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+        sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+        'data_type={}'.format(data_type), model_type, 
+        'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+        'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+        'statistics.pkl')
+
+    statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+    k = 270
+    mAP = np.mean(statistics_dict['test'][k]['average_precision'])
+    mAUC = np.mean(statistics_dict['test'][k]['auc'])
+    dprime = d_prime(mAUC)
+    return mAP, mAUC, dprime
+
+
+def _load_metrics_classwise(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+    fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+    workspace = '/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn'
+    statistics_path = os.path.join(workspace, 'statistics', filename, 
+        'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+        sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+        'data_type={}'.format(data_type), model_type, 
+        'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+        'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+        'statistics.pkl')
+
+    statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+    
+    k = 300
+    mAP = np.mean(statistics_dict['test'][k]['average_precision'])
+    mAUC = np.mean(statistics_dict['test'][k]['auc'])
+    dprime = d_prime(mAUC)
+    return mAP, mAUC, dprime
+
+
 def plot(args):
     
     # Arguments & parameters
@@ -401,6 +480,212 @@ def plot(args):
         line, = ax.plot(test_map, label='cnn14,balanced,mixup_from_0_epoch', color='m', alpha=test_alpha)
         lines.append(line)
 
+    elif select == '1_sr':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_16k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_16k', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_8k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_8k', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_time_domain':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_mixup_time_domain', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_time_domain', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_partial_full':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.9_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,partial_0.9', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.8_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,partial_0.8', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.7_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='k', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,partial_0.7', color='k', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.5_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='m', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,partial_0.5', color='m', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_window':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 2048, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_win2048', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_melbins':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 32, 50, 14000, 'full_train', 'Cnn14_mel32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_mel32', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 128, 50, 14000, 'full_train', 'Cnn14_mel128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_mel128', color='g', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '1_alternate':
+        max_plot_iteration = 2000000
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'alternate', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14_alternate', color='b', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '2_all':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn9', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn9', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn5', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn5', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV1', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='MobileNetV1', color='k', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn1d_ResNet34', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn1d_ResNet34', color='grey', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'ResNet34', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='ResNet34', color='grey', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_WavCnn2d', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_WavCnn2d', color='m', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_SpAndWav', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_SpAndWav', color='orange', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '2_emb':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_emb32', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_128', color='k', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb512', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn13_512', color='g', alpha=test_alpha)
+        lines.append(line)
+
+    elif select == '2_aug':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn13', color='b', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+                320, 64, 50, 14000, 'full_train', 'Cnn13_no_specaug', 'clip_bce', 'none', 'none', 32)
+        line, = ax.plot(bal_map, color='c', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14,none,none', color='c', alpha=test_alpha)
+        lines.append(line)
+
+        
+
     ax.set_ylim(0, 1.)
     ax.set_xlim(0, len(iterations))
     ax.xaxis.set_ticks(np.arange(0, len(iterations), 25))
@@ -409,6 +694,561 @@ def plot(args):
     ax.yaxis.set_ticklabels(np.around(np.arange(0, 1.01, 0.05), decimals=2))        
     ax.grid(color='b', linestyle='solid', linewidth=0.3)
     plt.legend(handles=lines, loc=2)
+    # box = ax.get_position()
+    # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    # ax.legend(handles=lines, bbox_to_anchor=(1.0, 1.0))
+
+    plt.savefig(save_out_path)
+    print('Save figure to {}'.format(save_out_path))
+
+
+def plot_for_paper(args):
+    
+    # Arguments & parameters
+    dataset_dir = args.dataset_dir
+    workspace = args.workspace
+    select = args.select
+    
+    classes_num = config.classes_num
+    max_plot_iteration = 1000000
+    iterations = np.arange(0, max_plot_iteration, 2000)
+
+    class_labels_indices_path = os.path.join(dataset_dir, 'metadata', 
+        'class_labels_indices.csv')
+        
+    save_out_path = 'results/paper_{}.pdf'.format(select)
+    create_folder(os.path.dirname(save_out_path))
+    
+    # Read labels
+    labels = config.labels
+    
+    # Plot
+    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    lines = []
+        
+    def _load_metrics(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+        statistics_path = os.path.join(workspace, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+        bal_map = np.array([statistics['average_precision'] for statistics in statistics_dict['bal']])    # (N, classes_num)
+        bal_map = np.mean(bal_map, axis=-1)
+        test_map = np.array([statistics['average_precision'] for statistics in statistics_dict['test']])    # (N, classes_num)
+        test_map = np.mean(test_map, axis=-1)
+        legend = '{}, {}, bal={}, aug={}, bs={}'.format(data_type, model_type, balanced, augmentation, batch_size)
+
+        # return {'bal_map': bal_map, 'test_map': test_map, 'legend': legend}
+        return bal_map, test_map, legend
+
+    bal_alpha = 0.3
+    test_alpha = 1.0
+    lines = []
+    linewidth = 1.
+
+    max_plot_iteration = 540000
+
+    if select == '2_all':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn9', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='cnn9', color='r', alpha=test_alpha)
+        # lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn5', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='cnn5', color='g', alpha=test_alpha)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV1', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='MobileNetV1', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn1d_ResNet34', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='Cnn1d_ResNet34', color='grey', alpha=test_alpha)
+        # lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn13_WavCnn2d', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        # line, = ax.plot(test_map, label='Wavegram-CNN', color='g', alpha=test_alpha, linewidth=linewidth)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_SpAndWav', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='Wavegram-Logmel-CNN', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+    elif select == '2_emb':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,emb=2048', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,emb=32', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,emb=128', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn13_emb512', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='Cnn13_512', color='g', alpha=test_alpha)
+        # lines.append(line)
+
+    elif select == '2_bal':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,bal,mixup (1.9m)', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_mixup_time_domain', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='y', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,bal,mixup-wav (1.9m)', color='y', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,no-bal,no-mixup (1.9m)', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,bal,no-mixup (1.9m)', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax.plot(bal_map, color='k', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,bal,no-mixup (20k)', color='k', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='m', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,bal,mixup (20k)', color='m', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+    elif select == '2_sr':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,32kHz', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_16k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,16kHz', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_8k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,8kHz', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+    elif select == '2_partial':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14 (100% full)', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'partial_0.9_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        # line, = ax.plot(test_map, label='cnn14,partial_0.9', color='b', alpha=test_alpha, linewidth=linewidth)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.8_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14 (80% full)', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'partial_0.7_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='k', alpha=bal_alpha, linewidth=linewidth)
+        # line, = ax.plot(test_map, label='cnn14,partial_0.7', color='k', alpha=test_alpha, linewidth=linewidth)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.5_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='cnn14 (50% full)', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+    elif select == '2_melbins':
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax.plot(test_map, label='CNN14,64-melbins', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 32, 50, 14000, 'full_train', 'Cnn14_mel32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='CNN14,32-melbins', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 128, 50, 14000, 'full_train', 'Cnn14_mel128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='CNN14,128-melbins', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+    ax.set_ylim(0, 0.8)
+    ax.set_xlim(0, len(iterations))
+    ax.set_xlabel('Iterations')
+    ax.set_ylabel('mAP')
+    ax.xaxis.set_ticks(np.arange(0, len(iterations), 50))
+    # ax.xaxis.set_ticklabels(np.arange(0, max_plot_iteration, 50000))
+    ax.xaxis.set_ticklabels(['0', '100k', '200k', '300k', '400k', '500k'])
+    ax.yaxis.set_ticks(np.arange(0, 0.81, 0.05))
+    ax.yaxis.set_ticklabels(['0', '', '0.1', '', '0.2', '', '0.3', '', '0.4', '', '0.5', '', '0.6', '', '0.7', '', '0.8'])
+    # ax.yaxis.set_ticklabels(np.around(np.arange(0, 0.81, 0.05), decimals=2))        
+    ax.yaxis.grid(color='k', linestyle='solid', alpha=0.3, linewidth=0.3)
+    ax.xaxis.grid(color='k', linestyle='solid', alpha=0.3, linewidth=0.3)
+    plt.legend(handles=lines, loc=2)
+    plt.tight_layout(0, 0, 0)
+    # box = ax.get_position()
+    # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    # ax.legend(handles=lines, bbox_to_anchor=(1.0, 1.0))
+
+    plt.savefig(save_out_path)
+    print('Save figure to {}'.format(save_out_path))
+
+
+def plot_for_paper2(args):
+    
+    # Arguments & parameters
+    dataset_dir = args.dataset_dir
+    workspace = args.workspace
+    
+    classes_num = config.classes_num
+    max_plot_iteration = 1000000
+    iterations = np.arange(0, max_plot_iteration, 2000)
+
+    class_labels_indices_path = os.path.join(dataset_dir, 'metadata', 
+        'class_labels_indices.csv')
+        
+    save_out_path = 'results/paper2.pdf'
+    create_folder(os.path.dirname(save_out_path))
+    
+    # Read labels
+    labels = config.labels
+    
+    # Plot
+    fig, ax = plt.subplots(2, 3, figsize=(14, 7))
+    lines = []
+        
+    def _load_metrics(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+        statistics_path = os.path.join(workspace, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+        bal_map = np.array([statistics['average_precision'] for statistics in statistics_dict['bal']])    # (N, classes_num)
+        bal_map = np.mean(bal_map, axis=-1)
+        test_map = np.array([statistics['average_precision'] for statistics in statistics_dict['test']])    # (N, classes_num)
+        test_map = np.mean(test_map, axis=-1)
+        legend = '{}, {}, bal={}, aug={}, bs={}'.format(data_type, model_type, balanced, augmentation, batch_size)
+
+        # return {'bal_map': bal_map, 'test_map': test_map, 'legend': legend}
+        return bal_map, test_map, legend
+
+    def _load_metrics0(filename, sample_rate, window_size, hop_size, mel_bins, fmin, 
+        fmax, data_type, model_type, loss_type, balanced, augmentation, batch_size):
+        workspace0 = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/workspaces/pub_audioset_tagging_cnn_transfer'
+        statistics_path = os.path.join(workspace0, 'statistics', filename, 
+            'sample_rate={},window_size={},hop_size={},mel_bins={},fmin={},fmax={}'.format(
+            sample_rate, window_size, hop_size, mel_bins, fmin, fmax), 
+            'data_type={}'.format(data_type), model_type, 
+            'loss_type={}'.format(loss_type), 'balanced={}'.format(balanced), 
+            'augmentation={}'.format(augmentation), 'batch_size={}'.format(batch_size), 
+            'statistics.pkl')
+
+        statistics_dict = cPickle.load(open(statistics_path, 'rb'))
+
+        bal_map = np.array([statistics['average_precision'] for statistics in statistics_dict['bal']])    # (N, classes_num)
+        bal_map = np.mean(bal_map, axis=-1)
+        test_map = np.array([statistics['average_precision'] for statistics in statistics_dict['test']])    # (N, classes_num)
+        test_map = np.mean(test_map, axis=-1)
+        legend = '{}, {}, bal={}, aug={}, bs={}'.format(data_type, model_type, balanced, augmentation, batch_size)
+
+        # return {'bal_map': bal_map, 'test_map': test_map, 'legend': legend}
+        return bal_map, test_map, legend
+        
+    bal_alpha = 0.3
+    test_alpha = 1.0
+    lines = []
+    linewidth = 1.
+
+    max_plot_iteration = 540000
+
+    if True:
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 0].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 0].plot(test_map, label='CNN14', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn9', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='cnn9', color='r', alpha=test_alpha)
+        # lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn5', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='cnn5', color='g', alpha=test_alpha)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'MobileNetV1', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 0].plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 0].plot(test_map, label='MobileNetV1', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn1d_ResNet34', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='Cnn1d_ResNet34', color='grey', alpha=test_alpha)
+        # lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'ResNet34', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax[0, 0].plot(bal_map, color='k', alpha=bal_alpha, linewidth=linewidth)
+        # line, = ax[0, 0].plot(test_map, label='ResNet38', color='k', alpha=test_alpha, linewidth=linewidth)
+        # lines.append(line)
+
+        # (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+        #     320, 64, 50, 14000, 'full_train', 'Cnn13_WavCnn2d', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        # line, = ax.plot(test_map, label='Wavegram-CNN', color='g', alpha=test_alpha, linewidth=linewidth)
+        # lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_SpAndWav', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 0].plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 0].plot(test_map, label='Wavegram-Logmel-CNN', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[0, 0].legend(handles=lines, loc=2)
+        ax[0, 0].set_title('(a) Comparison of architectures')
+
+    if True:
+        lines = []
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 1].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,bal,mixup (1.9m)', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+        line, = ax[0, 1].plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,no-bal,no-mixup (1.9m)', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_mixup_time_domain', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 1].plot(bal_map, color='y', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,bal,mixup-wav (1.9m)', color='y', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax[0, 1].plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,bal,no-mixup (1.9m)', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+        line, = ax[0, 1].plot(bal_map, color='k', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,bal,no-mixup (20k)', color='k', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 1].plot(bal_map, color='m', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 1].plot(test_map, label='CNN14,bal,mixup (20k)', color='m', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[0, 1].legend(handles=lines, loc=2, fontsize=8)
+
+        ax[0, 1].set_title('(b) Comparison of training data and augmentation')
+
+    if True:
+        lines = []
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 2].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 2].plot(test_map, label='CNN14,emb=2048', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 2].plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 2].plot(test_map, label='CNN14,emb=32', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics0('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn13_emb128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[0, 2].plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[0, 2].plot(test_map, label='CNN14,emb=128', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[0, 2].legend(handles=lines, loc=2)
+        ax[0, 2].set_title('(c) Comparison of embedding size')
+
+    if True:
+        lines = []
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 0].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 0].plot(test_map, label='CNN14 (100% full)', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.8_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 0].plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 0].plot(test_map, label='CNN14 (80% full)', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'partial_0.5_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 0].plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 0].plot(test_map, label='cnn14 (50% full)', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[1, 0].legend(handles=lines, loc=2)
+        ax[1, 0].set_title('(d) Comparison of amount of training data')
+
+    if True:
+        lines = []
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 1].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 1].plot(test_map, label='CNN14,32kHz', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_16k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 1].plot(bal_map, color='b', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 1].plot(test_map, label='CNN14,16kHz', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_8k', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 1].plot(bal_map, color='g', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 1].plot(test_map, label='CNN14,8kHz', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[1, 1].legend(handles=lines, loc=2)
+        ax[1, 1].set_title('(e) Comparison of sampling rate')
+
+    if True:
+        lines = []
+        iterations = np.arange(0, max_plot_iteration, 2000)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 2].plot(bal_map, color='r', alpha=bal_alpha, linewidth=linewidth)
+        line, = ax[1, 2].plot(test_map, label='CNN14,64-melbins', color='r', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 32, 50, 14000, 'full_train', 'Cnn14_mel32', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 2].plot(bal_map, color='b', alpha=bal_alpha)
+        line, = ax[1, 2].plot(test_map, label='CNN14,32-melbins', color='b', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 128, 50, 14000, 'full_train', 'Cnn14_mel128', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax[1, 2].plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax[1, 2].plot(test_map, label='CNN14,128-melbins', color='g', alpha=test_alpha, linewidth=linewidth)
+        lines.append(line)
+
+        ax[1, 2].legend(handles=lines, loc=2)
+        ax[1, 2].set_title('(f) Comparison of mel bins number')
+
+    for i in range(2):
+        for j in range(3):
+            ax[i, j].set_ylim(0, 0.8)
+            ax[i, j].set_xlim(0, len(iterations))
+            ax[i, j].set_xlabel('Iterations')
+            ax[i, j].set_ylabel('mAP')
+            ax[i, j].xaxis.set_ticks(np.arange(0, len(iterations), 50))
+            # ax.xaxis.set_ticklabels(np.arange(0, max_plot_iteration, 50000))
+            ax[i, j].xaxis.set_ticklabels(['0', '100k', '200k', '300k', '400k', '500k'])
+            ax[i, j].yaxis.set_ticks(np.arange(0, 0.81, 0.05))
+            ax[i, j].yaxis.set_ticklabels(['0', '', '0.1', '', '0.2', '', '0.3', '', '0.4', '', '0.5', '', '0.6', '', '0.7', '', '0.8'])
+            # ax.yaxis.set_ticklabels(np.around(np.arange(0, 0.81, 0.05), decimals=2))        
+            ax[i, j].yaxis.grid(color='k', linestyle='solid', alpha=0.3, linewidth=0.3)
+            ax[i, j].xaxis.grid(color='k', linestyle='solid', alpha=0.3, linewidth=0.3)
+
+    plt.tight_layout(0, 1, 0)
     # box = ax.get_position()
     # ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     # ax.legend(handles=lines, bbox_to_anchor=(1.0, 1.0))
@@ -945,7 +1785,7 @@ def plot_long_fig(args):
     
     # Paths
     stat_path = os.path.join(workspace, 'results', 'stats_for_paper.pkl')
-    save_out_path = 'results_map/long_fig.pdf'
+    save_out_path = 'results/long_fig.pdf'
     create_folder(os.path.dirname(save_out_path))
 
     # Stats
@@ -974,13 +1814,20 @@ def plot_long_fig(args):
     maps_mobilenetv1 = stats['mobilenetv1_system_iteration56k']['eval']['average_precision']
     maps_mobilenetv1 = maps_mobilenetv1[sorted_indexes]
 
+    maps_logmel_wavegram_cnn = _load_metrics0_classwise('main', 32000, 1024, 
+        320, 64, 50, 14000, 'full_train', 'Cnn13_SpAndWav', 'clip_bce', 'balanced', 'mixup', 32)
+    maps_logmel_wavegram_cnn = maps_logmel_wavegram_cnn[sorted_indexes]
+
     _scatter_4_rows(maps_avg_instances, ax1b, ax2b, ax3b, ax4b, s=5, c='k')
     _scatter_4_rows(maps_cnn13, ax1b, ax2b, ax3b, ax4b, s=5, c='r')
     _scatter_4_rows(maps_mobilenetv1, ax1b, ax2b, ax3b, ax4b, s=5, c='b')
+    _scatter_4_rows(maps_logmel_wavegram_cnn, ax1b, ax2b, ax3b, ax4b, s=5, c='g')
     
-    line0te = _plot_4_rows(maps_avg_instances, ax1b, ax2b, ax3b, ax4b, c='k', linewidth=1.0, label='AP with averaging instances (baseline)')
-    line1te = _plot_4_rows(maps_cnn13, ax1b, ax2b, ax3b, ax4b, c='r', linewidth=1.0, label='AP with cnn13')
-    line2te = _plot_4_rows(maps_mobilenetv1, ax1b, ax2b, ax3b, ax4b, c='b', linewidth=1.0, label='AP with mobilenetv1')
+    linewidth = 0.7
+    line0te = _plot_4_rows(maps_avg_instances, ax1b, ax2b, ax3b, ax4b, c='k', linewidth=linewidth, label='AP with averaging instances (baseline)')
+    line1te = _plot_4_rows(maps_cnn13, ax1b, ax2b, ax3b, ax4b, c='r', linewidth=linewidth, label='AP with CNN14')
+    line2te = _plot_4_rows(maps_mobilenetv1, ax1b, ax2b, ax3b, ax4b, c='b', linewidth=linewidth, label='AP with MobileNetV1')
+    line3te = _plot_4_rows(maps_logmel_wavegram_cnn, ax1b, ax2b, ax3b, ax4b, c='g', linewidth=linewidth, label='AP with Wavegram-Logmel-CNN')
 
     label_quality = stats['label_quality']
     sorted_rate = np.array(label_quality)[sorted_indexes]
@@ -997,7 +1844,7 @@ def plot_long_fig(args):
     ax3b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
     ax4b.scatter(np.arange(N)[sorted_rate == None], 0.5 * np.ones(len(np.arange(N)[sorted_rate == None])), s=12, c='r', linewidth=0.8, marker='_')
     
-    plt.legend(handles=[line0te, line1te, line2te, line_label_quality], fontsize=6, loc=1)
+    plt.legend(handles=[line0te, line1te, line2te, line3te, line_label_quality], fontsize=6, loc=1)
     
     plt.savefig(save_out_path)
     print('Save fig to {}'.format(save_out_path))
@@ -1074,6 +1921,45 @@ def spearman(args):
     print('Quality spearman: {:.3f}'.format(quality_spearman))
 
 
+def print_results(args):
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14_mixup_time_domain', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'none', 'none', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'none', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'balanced_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+
+    # 
+    (mAP, mAUC, dprime) = _load_metrics0_classwise2('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn13_emb32', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics0_classwise2('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn13_emb128', 'clip_bce', 'balanced', 'mixup', 32)
+
+    # partial
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'partial_0.8_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'partial_0.5_full_train', 'Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+
+    # Sample rate
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14_16k', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 64, 50, 14000, 'full_train', 'Cnn14_8k', 'clip_bce', 'balanced', 'mixup', 32)
+
+    # Mel bins
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 128, 50, 14000, 'full_train', 'Cnn14_mel128', 'clip_bce', 'balanced', 'mixup', 32)
+
+    (mAP, mAUC, dprime) = _load_metrics_classwise('main', 32000, 1024, 320, 32, 50, 14000, 'full_train', 'Cnn14_mel32', 'clip_bce', 'balanced', 'mixup', 32)
+
+    import crash
+    asdf
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='')
@@ -1084,6 +1970,15 @@ if __name__ == '__main__':
     parser_plot.add_argument('--workspace', type=str, required=True)
     parser_plot.add_argument('--select', type=str, required=True)
     
+    parser_plot = subparsers.add_parser('plot_for_paper')
+    parser_plot.add_argument('--dataset_dir', type=str, required=True)
+    parser_plot.add_argument('--workspace', type=str, required=True)
+    parser_plot.add_argument('--select', type=str, required=True)
+
+    parser_plot = subparsers.add_parser('plot_for_paper2')
+    parser_plot.add_argument('--dataset_dir', type=str, required=True)
+    parser_plot.add_argument('--workspace', type=str, required=True)
+
     parser_values = subparsers.add_parser('plot_class_iteration')
     parser_values.add_argument('--workspace', type=str, required=True)
     parser_values.add_argument('--select', type=str, required=True)
@@ -1100,10 +1995,19 @@ if __name__ == '__main__':
     parser_spearman = subparsers.add_parser('spearman')
     parser_spearman.add_argument('--workspace', type=str, required=True)
 
+    parser_print = subparsers.add_parser('print')
+    parser_print.add_argument('--workspace', type=str, required=True)
+
     args = parser.parse_args()
 
     if args.mode == 'plot':
         plot(args)
+
+    elif args.mode == 'plot_for_paper':
+        plot_for_paper(args)
+
+    elif args.mode == 'plot_for_paper2':
+        plot_for_paper2(args)
         
     elif args.mode == 'table_values':
         table_values(args)
@@ -1122,6 +2026,9 @@ if __name__ == '__main__':
 
     elif args.mode == 'spearman':
         spearman(args)
+
+    elif args.mode == 'print':
+        print_results(args)
 
     else:
         raise Exception('Error argument!')
