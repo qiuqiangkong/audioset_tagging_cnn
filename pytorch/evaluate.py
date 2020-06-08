@@ -4,18 +4,19 @@ from pytorch_utils import forward
 
 
 class Evaluator(object):
-    def __init__(self, model, generator):
+    def __init__(self, model):
         """Evaluator.
 
         Args:
           model: object
-          generator: object
         """
         self.model = model
-        self.generator = generator
         
-    def evaluate(self):
+    def evaluate(self, data_loader):
         """Forward evaluation data and calculate statistics.
+
+        Args:
+          data_loader: object
 
         Returns:
           statistics: dict, 
@@ -25,7 +26,7 @@ class Evaluator(object):
         # Forward
         output_dict = forward(
             model=self.model, 
-            generator=self.generator, 
+            generator=data_loader, 
             return_target=True)
 
         clipwise_output = output_dict['clipwise_output']    # (audios_num, classes_num)
