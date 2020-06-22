@@ -1,0 +1,2 @@
+Sun, 12 Apr 2020 14:36:12 dataset.py[line:153] INFO Write logs to _logs/pack_waveforms_to_hdf5/mini_eval_segments
+Sun, 12 Apr 2020 14:36:12 selector_events.py[line:65] DEBUG Using selector: EpollSelector

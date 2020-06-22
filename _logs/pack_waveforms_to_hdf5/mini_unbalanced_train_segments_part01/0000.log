@@ -1,0 +1,13 @@
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:154] INFO Write logs to _logs/pack_waveforms_to_hdf5/mini_unbalanced_train_segments_part01
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 0 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nLqxPYXRTg.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 1 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nLtc1Xxanw.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:188] INFO 2 File does not exist! /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nLzbPjOPg8.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 3 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nM18XU2r-E.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 4 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nM1T6MlnTU.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 5 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nM8wUq70Bo.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 6 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nMBctwg2do.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 7 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nMF0vfb6wo.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 8 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nMH8mPc418.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:180] INFO 9 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part01/Y-nMJUBufeSs.wav
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:190] INFO Write to /mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s/waveforms/unbalanced_train/unbalanced_train_part01.h5.mini
+Fri, 10 Apr 2020 16:46:39 dataset.py[line:191] INFO Pack hdf5 time: 0.072

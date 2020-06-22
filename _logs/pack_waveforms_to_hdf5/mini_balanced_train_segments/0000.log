@@ -1,0 +1,13 @@
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:154] INFO Write logs to _logs/pack_waveforms_to_hdf5/mini_balanced_train_segments
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 0 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--PJHxphWEs.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 1 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--ZhevVpy1s.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 2 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--aE2O5G5WE.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 3 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--aO5cdqSAg.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 4 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--aaILOrkII.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 5 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--cB2ZVjpnA.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 6 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y--ekDLDTUXA.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 7 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y-0DLPzsiXXE.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 8 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y-0DdlOuIFUI.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:180] INFO 9 /mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/balanced_train_segments/Y-0FHUc78Gqo.wav
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:190] INFO Write to /mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s/waveforms/balanced_train.h5.mini
+Fri, 10 Apr 2020 16:46:16 dataset.py[line:191] INFO Pack hdf5 time: 0.291
