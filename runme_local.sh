@@ -58,3 +58,7 @@ python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/sed/Cnn14_mAP=0.431.pth"
 python3 pytorch/test9.py train --workspace=$WORKSPACE --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
+
+
+#######
+python3 utils/dataset_hdfs.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --waveforms_hdf5_path=$WORKSPACE"/hdfs/waveforms/eval.h5"
