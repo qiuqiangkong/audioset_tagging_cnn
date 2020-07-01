@@ -61,4 +61,4 @@ python3 pytorch/test9.py train --workspace=$WORKSPACE --model_type=$MODEL_TYPE -
 
 
 #######
-python3 utils/dataset_hdfs.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --waveforms_hdf5_path=$WORKSPACE"/hdfs/waveforms/eval.h5"
+python3 utils/dataset_hdfs.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --waveforms_hdfs_path=$WORKSPACE"/hdfs/waveforms/eval.h5"
