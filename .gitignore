@@ -3,5 +3,6 @@
 !*.*
 *.hdf5
 *.pyc
+*.wav
 __pycache__
 _logs

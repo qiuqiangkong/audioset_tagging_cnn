@@ -60,5 +60,29 @@ CHECKPOINT_PATH="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/sed/Cnn14_m
 python3 pytorch/test9.py train --workspace=$WORKSPACE --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
 
 
-#######
-python3 utils/dataset_hdfs.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --waveforms_hdfs_path=$WORKSPACE"/hdfs/waveforms/eval.h5"
+####### HDFS
+python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --hdfs_path=$WORKSPACE"/hdfs/waveforms/eval"
+
+python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/balanced_train_segments.csv" --audios_dir=$DATASET_DIR"/audios/balanced_train_segments" --hdfs_path=$WORKSPACE"/hdfs/waveforms/balanced_train"
+
+for IDX in {30..41}; do
+    echo $IDX
+    python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/unbalanced_partial_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir=$DATASET_DIR"/audios/unbalanced_train_segments/unbalanced_train_segments_part$IDX" --hdfs_path=$WORKSPACE"/hdfs/waveforms/unbalanced_train_segments/unbalanced_train_segments_part$IDX"
+done
+
+# Create indexes
+python3 utils/hdfs_create_indexes.py create_indexes --hdfs_dir=$WORKSPACE"/hdfs/waveforms/balanced_train" --indexes_hdf5_path=$WORKSPACE"/hdfs/indexes/balanced_train.h5"
+
+python3 utils/hdfs_create_indexes.py create_indexes --hdfs_dir=$WORKSPACE"/hdfs/waveforms/eval" --indexes_hdf5_path=$WORKSPACE"/hdfs/indexes/eval.h5"
+
+for IDX in {00..40}; do
+    echo $IDX
+    python3 utils/hdfs_create_indexes.py create_indexes --hdfs_dir=$WORKSPACE"/hdfs/waveforms/unbalanced_train_segments/unbalanced_train_segments_part$IDX" --indexes_hdf5_path=$WORKSPACE"/hdfs/indexes/unbalanced_train/unbalanced_train_part$IDX.h5"
+done
+
+python3 utils/hdfs_create_indexes.py combine_full_indexes --indexes_hdf5s_dir=$WORKSPACE"/hdfs/indexes" --full_indexes_hdf5_path=$WORKSPACE"/hdfs/indexes/full_train.h5"
+
+# Train
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/hdfs_main.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
+
+

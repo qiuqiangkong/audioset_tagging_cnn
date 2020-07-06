@@ -14,7 +14,6 @@ from utilities import (create_folder, get_filename, create_logging,
     float32_to_int16, pad_or_truncate, read_metadata)
 import config
 
-
 def pack_waveforms_to_hdfs(args):
     """Pack waveform and target of several audio clips to a single hdf5 file. 
     This can speed up loading and training.
@@ -23,7 +22,7 @@ def pack_waveforms_to_hdfs(args):
     # Arguments & parameters
     audios_dir = args.audios_dir
     csv_path = args.csv_path
-    waveforms_hdfs_path = args.waveforms_hdfs_path
+    hdfs_path = args.hdfs_path
     mini_data = args.mini_data
 
     clip_samples = config.clip_samples
@@ -34,11 +33,16 @@ def pack_waveforms_to_hdfs(args):
     # Paths
     if mini_data:
         prefix = 'mini_'
-        waveforms_hdfs_path += '.mini'
+        hdfs_path += '.mini'
     else:
         prefix = ''
 
+    audio_names_hdfs_path = hdfs_path + '/audio_names'
+    waveforms_hdfs_path = hdfs_path + '/waveforms'
+    targets_hdfs_path = hdfs_path + '/targets'
+
     create_folder(os.path.dirname(waveforms_hdfs_path))
+    create_folder(os.path.dirname(targets_hdfs_path))
 
     logs_dir = '_logs/pack_waveforms_to_hdf5/{}{}'.format(prefix, get_filename(csv_path))
     create_folder(logs_dir)
@@ -55,8 +59,18 @@ def pack_waveforms_to_hdfs(args):
 
     audios_num = len(meta_dict['audio_name'])
 
-    values = []
+    keys = []
+    waveforms = []
+    targets = []
 
+    total_time = time.time()
+
+    num_shard = 1
+    audio_name_writer = KVWriter(audio_names_hdfs_path, num_shard)
+    waveform_writer = KVWriter(waveforms_hdfs_path, num_shard)
+    target_writer = KVWriter(targets_hdfs_path, num_shard)
+    
+    cnt = 0
     for n in range(audios_num):
         audio_path = os.path.join(audios_dir, meta_dict['audio_name'][n])
 
@@ -64,31 +78,26 @@ def pack_waveforms_to_hdfs(args):
             logging.info('{} {}'.format(n, audio_path))
             (audio, _) = librosa.core.load(audio_path, sr=sample_rate, mono=True)
             audio = pad_or_truncate(audio, clip_samples)
+            audio = float32_to_int16(audio)
 
-            values.append({'audio_name': meta_dict['audio_name'][n].encode(), 
-                'waveform': float32_to_int16(audio), 
-                'target': meta_dict['target'][n]})
+            audio_name_writer.write_many([str(cnt)], [meta_dict['audio_name'][n].encode()])
+            waveform_writer.write_many([str(cnt)], [audio.tobytes()])
+            target_writer.write_many([str(cnt)], [meta_dict['target'][n].tobytes()])
+
+            cnt += 1
 
         else:
             logging.info('{} File does not exist! {}'.format(n, audio_path))
 
-    import crash
-    asdf
+    audio_name_writer.flush()
+    waveform_writer.flush() # Make sure to flush at the end
+    target_writer.flush()
 
-    num_shard = 1
-    writer = KVWriter(waveforms_hdf5_path, num_shard)
-    writer.write_many(keys, values)
-    writer.flush() # Make sure to flush at the end
-
-    # Pack waveform to hdf5
-    total_time = time.time()
-
-    # Pack waveform & target of several audio clips to a single hdf5 file
-    
-
-    logging.info('Write to {}'.format(waveforms_hdf5_path))
+    logging.info('Write to {}'.format(audio_name_writer))
+    logging.info('Write to {}'.format(waveforms_hdfs_path))
+    logging.info('Write to {}'.format(targets_hdfs_path))
     logging.info('Pack hdf5 time: {:.3f}'.format(time.time() - total_time))
-          
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -97,7 +106,7 @@ if __name__ == '__main__':
     parser_pack_wavs = subparsers.add_parser('pack_waveforms_to_hdfs')
     parser_pack_wavs.add_argument('--csv_path', type=str, required=True, help='Path of csv file containing audio info to be downloaded.')
     parser_pack_wavs.add_argument('--audios_dir', type=str, required=True, help='Directory to save out downloaded audio.')
-    parser_pack_wavs.add_argument('--waveforms_hdfs_path', type=str, required=True, help='Path to save out packed hdf5.')
+    parser_pack_wavs.add_argument('--hdfs_path', type=str, required=True, help='Path to save out packed hdf5.')
     parser_pack_wavs.add_argument('--mini_data', action='store_true', default=False, help='Set true to only download 10 audios for debugging.')
 
     args = parser.parse_args()
