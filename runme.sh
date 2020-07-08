@@ -49,7 +49,7 @@ python3 utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/balance
 # one command in one terminal.
 for IDX in {00..40}; do
   echo $IDX
-  python utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/unbalanced_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir=$DATASET_DIR"/audios/unbalanced_train_segments/unbalanced_train_segments_part$IDX"
+  python utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/unbalanced_partial_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir=$DATASET_DIR"/audios/unbalanced_train_segments/unbalanced_train_segments_part$IDX"
 done
 
 # ============ Pack waveform and target to hdf5 ============
