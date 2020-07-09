@@ -61,6 +61,10 @@ python3 pytorch/test9.py train --workspace=$WORKSPACE --model_type=$MODEL_TYPE -
 
 
 ####### HDFS
+
+HDFS_WORKSPACE='hdfs://haruna/home/byte_speech_sv/user/kongqiuqiang/workspaces/audioset_tagging'
+WORKSPACE="/root/workspaces/audioset_tagging"
+
 python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --hdfs_path=$WORKSPACE"/hdfs/waveforms/eval"
 
 python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/balanced_train_segments.csv" --audios_dir=$DATASET_DIR"/audios/balanced_train_segments" --hdfs_path=$WORKSPACE"/hdfs/waveforms/balanced_train"
