@@ -280,7 +280,6 @@ def train(args):
             checkpoint = {
                 'iteration': iteration, 
                 'model': model.module.state_dict(), 
-                'optimizer': optimizer.state_dict(), 
                 'sampler': train_sampler.state_dict()}
 
             checkpoint_path = os.path.join(
