@@ -1,18 +1,9 @@
-import os
-import sys
-import math
-import time
-import numpy as np
-import matplotlib.pyplot as plt
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.checkpoint as cp
-from torch.nn.parameter import Parameter
-
 from torchlibrosa.stft import Spectrogram, LogmelFilterBank
 from torchlibrosa.augmentation import SpecAugmentation
+
 from pytorch_utils import do_mixup, interpolate, pad_framewise_output
  
 
@@ -3159,7 +3150,6 @@ class Cnn14_DecisionLevelAvg(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
-        # t1 = time.time()
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
 
@@ -3264,7 +3254,6 @@ class Cnn14_DecisionLevelAtt(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
-        # t1 = time.time()
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
 
