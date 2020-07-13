@@ -3,12 +3,8 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '../utils'))
 import numpy as np
 import argparse
-import h5py
-import math
 import time
 import logging
-import matplotlib.pyplot as plt
-from sklearn import metrics
 
 import torch
 import torch.nn as nn
@@ -33,36 +29,15 @@ import config
 from losses import get_loss_func
 
 
-def get_train_sampler(balanced):
-    """Get train sampler.
-
-    Args:
-      balanced: str
-      augmentation: str
-      train_indexes_hdf5_path: str
-      black_list_csv: str
-      batch_size: int
-
-    Returns:
-      train_sampler: object
-      train_collector: object
-    """
-    if balanced == 'none':
-        _Sampler = TrainSampler
-    elif balanced == 'balanced':
-        _Sampler = BalancedTrainSampler
-    elif balanced == 'alternate':
-        _Sampler = AlternateTrainSampler
-
-
 def train(args):
     """Train AudioSet tagging model. 
 
     Args:
       dataset_dir: str
       workspace: str
-      data_type: 'balanced_train' | 'unbalanced_train'
-      frames_per_second: int
+      data_type: 'balanced_train' | 'full_train'
+      window_size: int
+      hop_size: int
       mel_bins: int
       model_type: str
       loss_type: 'clip_bce'
@@ -144,7 +119,7 @@ def train(args):
         logging.info('Using GPU.')
         device = 'cuda'
     else:
-        logging.info('Using CPU.')
+        logging.info('Using CPU. Set --cuda flag to use GPU.')
         device = 'cpu'
     
     # Model
