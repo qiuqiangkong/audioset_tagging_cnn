@@ -138,20 +138,9 @@ def train(args):
         batch_sampler=eval_test_sampler, collate_fn=collate_fn, 
         num_workers=num_workers, pin_memory=True)
 
-    # Evaluate
-
-    # bal_statistics = evaluator.evaluate(eval_bal_loader)
-    # test_statistics = evaluator.evaluate(eval_test_loader)
-                    
-    # logging.info('Validate bal mAP: {:.3f}'.format(
-    #     np.mean(bal_statistics['average_precision'])))
-
-    # logging.info('Validate test mAP: {:.3f}'.format(
-    #     np.mean(test_statistics['average_precision'])))
-
     output_dict = forward(
         model=model, 
-        generator=eval_test_loader, 
+        generator=eval_bal_loader, 
         return_target=True)
 
     clipwise_output = output_dict['clipwise_output']    # (audios_num, classes_num)
@@ -167,6 +156,8 @@ def train(args):
         opt_thres.append(thresholds[i])
 
     pickle.dump(opt_thres, open('opt_thres.pkl', 'wb'))
+    import crash
+    sdf
     
         
 
@@ -175,7 +166,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Example of parser. ')
     subparsers = parser.add_subparsers(dest='mode')
 
-    parser_train = subparsers.add_parser('train') 
+    parser_train = subparsers.add_parser('opt_thres') 
     parser_train.add_argument('--workspace', type=str, required=True)
     parser_train.add_argument('--data_type', type=str, default='full_train', choices=['balanced_train', 'full_train'])
     parser_train.add_argument('--window_size', type=int, default=1024)
@@ -192,7 +183,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.filename = get_filename(__file__)
 
-    if args.mode == 'train':
+    if args.mode == 'opt_thres':
         train(args)
 
     else:
