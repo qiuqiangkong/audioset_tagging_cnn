@@ -88,10 +88,14 @@ python3 utils/hdfs_create_indexes.py combine_full_indexes --indexes_hdf5s_dir=$W
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/hdfs_main.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
 
 ####
-WORKSPACE="/home/tiger/workspaces/audioset_tagging"
+# WORKSPACE="/home/tiger/workspaces/audioset_tagging"
+WORKSPACE="/root/workspaces/audioset_tagging"
 
-CUDA_VISIBLE_DEVICES=1 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
+CUDA_VISIBLE_DEVICES=2 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
 
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH='/home/tiger/released_models/sed/Cnn14_mAP=0.431.pth'
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/calculate_opt_thresholds.py opt_thres --workspace=$WORKSPACE --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --cuda
+
+cd /root/my_code_2019.12-/python/audioset_tagging_pytorch
+python3 utils/wavs_to_mp3s.py
