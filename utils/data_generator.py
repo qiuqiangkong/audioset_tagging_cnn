@@ -1,5 +1,3 @@
-import os
-import sys
 import numpy as np
 import h5py
 import csv
@@ -24,20 +22,14 @@ class AudioSetDataset(object):
     def __init__(self, clip_samples, classes_num):
         """This class takes the meta of an audio clip as input, and return 
         the waveform and target of the audio clip. This class is used by DataLoader. 
-
-        Args:
-          clip_samples: int
-          classes_num: int
         """
-        self.clip_samples = clip_samples
-        self.classes_num = classes_num
+        pass
     
     def __getitem__(self, meta):
         """Load waveform and target of an audio clip.
         
         Args:
           meta: {
-            'audio_name': str, 
             'hdf5_path': str, 
             'index_in_hdf5': int}
 
@@ -47,20 +39,13 @@ class AudioSetDataset(object):
             'waveform': (clip_samples,), 
             'target': (classes_num,)}
         """
-        if meta is None:
-            """Dummy waveform and target. This is used for samples with mixup 
-            lamda of 0."""
-            audio_name = None
-            waveform = np.zeros((self.clip_samples,), dtype=np.float32)
-            target = np.zeros((self.classes_num,), dtype=np.float32)
-        else:
-            hdf5_path = meta['hdf5_path']
-            index_in_hdf5 = meta['index_in_hdf5']
+        hdf5_path = meta['hdf5_path']
+        index_in_hdf5 = meta['index_in_hdf5']
 
-            with h5py.File(hdf5_path, 'r') as hf:
-                audio_name = hf['audio_name'][index_in_hdf5].decode()
-                waveform = int16_to_float32(hf['waveform'][index_in_hdf5])
-                target = hf['target'][index_in_hdf5].astype(np.float32)
+        with h5py.File(hdf5_path, 'r') as hf:
+            audio_name = hf['audio_name'][index_in_hdf5].decode()
+            waveform = int16_to_float32(hf['waveform'][index_in_hdf5])
+            target = hf['target'][index_in_hdf5].astype(np.float32)
 
         data_dict = {
             'audio_name': audio_name, 'waveform': waveform, 'target': target}
@@ -129,10 +114,7 @@ class TrainSampler(Base):
         
         Returns:
           batch_meta: e.g.: [
-            {'audio_name': 'YfWBzCRl6LUs.wav', 
-             'hdf5_path': 'xx/balanced_train.h5', 
-             'index_in_hdf5': 15734, 
-             'target': [0, 1, 0, 0, ...]}, 
+            {'hdf5_path': string, 'index_in_hdf5': int}, 
             ...]
         """
         batch_size = self.batch_size
@@ -154,10 +136,8 @@ class TrainSampler(Base):
                     continue
                 else:
                     batch_meta.append({
-                        'audio_name': self.audio_names[index], 
                         'hdf5_path': self.hdf5_paths[index], 
-                        'index_in_hdf5': self.indexes_in_hdf5[index], 
-                        'target': self.targets[index]})
+                        'index_in_hdf5': self.indexes_in_hdf5[index]})
                     i += 1
 
             yield batch_meta
@@ -218,10 +198,7 @@ class BalancedTrainSampler(Base):
         
         Returns:
           batch_meta: e.g.: [
-            {'audio_name': 'YfWBzCRl6LUs.wav', 
-             'hdf5_path': 'xx/balanced_train.h5', 
-             'index_in_hdf5': 15734, 
-             'target': [0, 1, 0, 0, ...]}, 
+            {'hdf5_path': string, 'index_in_hdf5': int}, 
             ...]
         """
         batch_size = self.batch_size
@@ -248,10 +225,8 @@ class BalancedTrainSampler(Base):
                     continue
                 else:
                     batch_meta.append({
-                        'audio_name': self.audio_names[index], 
                         'hdf5_path': self.hdf5_paths[index], 
-                        'index_in_hdf5': self.indexes_in_hdf5[index], 
-                        'target': self.targets[index]})
+                        'index_in_hdf5': self.indexes_in_hdf5[index]})
                     i += 1
 
             yield batch_meta
@@ -291,6 +266,13 @@ class AlternateTrainSampler(Base):
         self.count = 0
 
     def __iter__(self):
+        """Generate batch meta for training. 
+        
+        Returns:
+          batch_meta: e.g.: [
+            {'hdf5_path': string, 'index_in_hdf5': int}, 
+            ...]
+        """
         batch_size = self.batch_size
 
         while True:
@@ -313,10 +295,8 @@ class AlternateTrainSampler(Base):
                         continue
                     else:
                         batch_meta.append({
-                            'audio_name': self.sampler1.audio_names[index], 
                             'hdf5_path': self.sampler1.hdf5_paths[index], 
-                            'index_in_hdf5': self.sampler1.indexes_in_hdf5[index], 
-                            'target': self.sampler1.targets[index]})
+                            'index_in_hdf5': self.sampler1.indexes_in_hdf5[index]})
                         i += 1
 
             elif self.count % 2 == 1:
@@ -341,10 +321,8 @@ class AlternateTrainSampler(Base):
                         continue
                     else:
                         batch_meta.append({
-                            'audio_name': self.sampler2.audio_names[index], 
                             'hdf5_path': self.sampler2.hdf5_paths[index], 
-                            'index_in_hdf5': self.sampler2.indexes_in_hdf5[index], 
-                            'target': self.sampler2.targets[index]})
+                            'index_in_hdf5': self.sampler2.indexes_in_hdf5[index]})
                         i += 1
 
             yield batch_meta
@@ -383,10 +361,8 @@ class EvaluateSampler(object):
         
         Returns:
           batch_meta: e.g.: [
-            {'audio_name': 'Y--PJHxphWEs.wav', 
-             'hdf5_path': 'xx/balanced_train.h5', 
-             'index_in_hdf5': 0, 'target':
-             'target': [0, 1, 0, 0, ...]}, 
+            {'hdf5_path': string, 
+             'index_in_hdf5': int}
             ...]
         """
         batch_size = self.batch_size
