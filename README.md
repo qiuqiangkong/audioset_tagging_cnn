@@ -40,9 +40,16 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --mode
 ```
 
 The visualization of sound event detection result looks like:
-<img src="appendixes/sed_R9_ZSCveAHg_7s.png">
+<img src="resources/sed_R9_ZSCveAHg_7s.png">
 
-Please see https://www.youtube.com/watch?v=QyFNIhRxFrY for a sound event detection video demo, and https://github.com/yinkalario/Sound-Event-Detection-AudioSet for the demo code.
+Please see https://www.youtube.com/watch?v=QyFNIhRxFrY for a sound event detection demo.
+
+For those users who only want to use the pretrained models for inference, we have prepared a **panns_inference** tool which can be easily installed by:
+```
+pip install panns_inference
+```
+
+Please visit https://github.com/qiuqiangkong/panns_inference for details of panns_inference.
 
 ## Train PANNs from scrratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
@@ -125,13 +132,13 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
-<img src="appendixes/mAP_figure.png" width=600>
+<img src="resources/results_figure.png">
 
 The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
 
 ## Performance of differernt systems
 
-<img src="appendixes/mAP_table.png" width=400>
+<img src="resources/mAP_table.png" width=400>
 
 Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
 
@@ -148,9 +155,6 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --window_size=
 ## Demos
 We apply the audio tagging system to build a sound event detection (SED) system. The SED prediction is obtained by applying the audio tagging system on consecutive 2-second segments. The video of demo can be viewed at: <br>
 https://www.youtube.com/watch?v=7TEtDMzdLeY
-
-The code of the graphical interface demo is available at: <br>
-https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
 
 ## FAQs
 If users came across out of memory error, then try to reduce the batch size.
