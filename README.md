@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 
 ## Audio tagging using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
 ```
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
@@ -32,7 +32,7 @@ embedding: (2048,)
 ```
 
 ## Sound event detection using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3576403, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [wav](examples/R9_ZSCveAHg_7s.wav):
 ```
 MODEL_TYPE="Cnn14_DecisionLevelMax"
 CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
@@ -151,6 +151,9 @@ https://www.youtube.com/watch?v=7TEtDMzdLeY
 
 The code of the graphical interface demo is available at: <br>
 https://github.com/yinkalario/General-Purpose-Sound-Recognition-Demo
+
+## FAQs
+If users came across out of memory error, then try to reduce the batch size.
 
 ## Cite
 [1] Qiuqiang Kong, Yin Cao, Turab Iqbal, Yuxuan Wang, Wenwu Wang, Mark D. Plumbley. "PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition." arXiv preprint arXiv:1912.10211 (2019).
