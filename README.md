@@ -134,7 +134,7 @@ An **mean average precision (mAP)** of **0.431** is obtained. The training curve
 
 <img src="resources/results_figure.png">
 
-The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
+Results of PANNs on AudioSet tagging. Dash and solid lines are training mAP and evaluation mAP, respectively. The six plots show the results with different: (a) architectures; (b) data balancing and data augmentation; (c) embedding size; (d) amount of training data; (e) sampling rate; (f) number of mel bins.
 
 ## Performance of differernt systems
 
