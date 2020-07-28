@@ -40,7 +40,7 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --mode
 ```
 
 The visualization of sound event detection result looks like:
-<img src="appendixes/sed_R9_ZSCveAHg_7s.png">
+<img src="resources/sed_R9_ZSCveAHg_7s.png">
 
 Please see https://www.youtube.com/watch?v=QyFNIhRxFrY for a sound event detection video demo, and https://github.com/yinkalario/Sound-Event-Detection-AudioSet for the demo code.
 
@@ -125,13 +125,13 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
-<img src="appendixes/mAP_figure.png" width=600>
+<img src="resources/results_figure.png" width=800>
 
 The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
 
 ## Performance of differernt systems
 
-<img src="appendixes/mAP_table.png" width=400>
+<img src="resources/mAP_table.png" width=400>
 
 Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
 
