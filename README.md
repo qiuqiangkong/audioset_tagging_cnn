@@ -49,7 +49,7 @@ For those users who only want to use the pretrained models for inference, we hav
 pip install panns_inference
 ```
 
-To see details of panns_inference, please visit https://github.com/qiuqiangkong/panns_inference
+Please visit https://github.com/qiuqiangkong/panns_inference for details of panns_inference.
 
 ## Train PANNs from scrratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
