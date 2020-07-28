@@ -125,7 +125,7 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
-<img src="resources/results_figure.png" width=800>
+<img src="resources/results_figure.png">
 
 The transparent curves are training mAP. The dark curves are evaluation mAP. We plot mAP curve CNN14, MobilNetV1 and MobileNetV2 in the above figure.
 
