@@ -6,3 +6,4 @@
 *.wav
 __pycache__
 _logs
+*.pth
