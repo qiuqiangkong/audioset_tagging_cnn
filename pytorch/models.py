@@ -2272,6 +2272,7 @@ class Wavegram_Cnn14(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
+        # Wavegram
         a1 = F.relu_(self.pre_bn0(self.pre_conv0(input[:, None, :])))
         a1 = self.pre_block1(a1, pool_size=4)
         a1 = self.pre_block2(a1, pool_size=4)
@@ -2369,6 +2370,7 @@ class Wavegram_Logmel_Cnn14(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
+        # Wavegram
         a1 = F.relu_(self.pre_bn0(self.pre_conv0(input[:, None, :])))
         a1 = self.pre_block1(a1, pool_size=4)
         a1 = self.pre_block2(a1, pool_size=4)
@@ -2376,6 +2378,7 @@ class Wavegram_Logmel_Cnn14(nn.Module):
         a1 = a1.reshape((a1.shape[0], -1, 32, a1.shape[-1])).transpose(2, 3)
         a1 = self.pre_block4(a1, pool_size=(2, 1))
 
+        # Log mel spectrogram
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
         
@@ -2392,7 +2395,10 @@ class Wavegram_Logmel_Cnn14(nn.Module):
             a1 = do_mixup(a1, mixup_lambda)
         
         x = self.conv_block1(x, pool_size=(2, 2), pool_type='avg')
+
+        # Concatenate Wavegram and Log mel spectrogram along the channel dimension
         x = torch.cat((x, a1), dim=1)
+
         x = F.dropout(x, p=0.2, training=self.training)
         x = self.conv_block2(x, pool_size=(2, 2), pool_type='avg')
         x = F.dropout(x, p=0.2, training=self.training)
@@ -2478,6 +2484,7 @@ class Wavegram_Logmel128_Cnn14(nn.Module):
         """
         Input: (batch_size, data_length)"""
 
+        # Wavegram
         a1 = F.relu_(self.pre_bn0(self.pre_conv0(input[:, None, :])))
         a1 = self.pre_block1(a1, pool_size=4)
         a1 = self.pre_block2(a1, pool_size=4)
@@ -2485,6 +2492,7 @@ class Wavegram_Logmel128_Cnn14(nn.Module):
         a1 = a1.reshape((a1.shape[0], -1, 64, a1.shape[-1])).transpose(2, 3)
         a1 = self.pre_block4(a1, pool_size=(2, 1))
 
+        # Log mel spectrogram
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
         
@@ -2501,7 +2509,10 @@ class Wavegram_Logmel128_Cnn14(nn.Module):
             a1 = do_mixup(a1, mixup_lambda)
         
         x = self.conv_block1(x, pool_size=(2, 2), pool_type='avg')
+
+        # Concatenate Wavegram and Log mel spectrogram along the channel dimension
         x = torch.cat((x, a1), dim=1)
+        
         x = F.dropout(x, p=0.2, training=self.training)
         x = self.conv_block2(x, pool_size=(2, 2), pool_type='avg')
         x = F.dropout(x, p=0.2, training=self.training)
