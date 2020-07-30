@@ -1,7 +1,7 @@
 import os
 
-wavs_dir = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part19'
-mp3s_dir = '/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/unbalanced_train_segments/unbalanced_train_segments_part19'
+wavs_dir = '/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/audios/unbalanced_train_segments/unbalanced_train_segments_part40'
+mp3s_dir = '/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/unbalanced_train_segments/unbalanced_train_segments_part40'
 
 os.makedirs(mp3s_dir, exist_ok=True)
 

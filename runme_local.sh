@@ -99,3 +99,14 @@ CUDA_VISIBLE_DEVICES=0 python3 pytorch/calculate_opt_thresholds.py opt_thres --w
 
 cd /root/my_code_2019.12-/python/audioset_tagging_pytorch
 python3 utils/wavs_to_mp3s.py
+
+
+##
+python3 utils/dataset_mp3.py pack_waveforms_to_hdf5 --csv_path="/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/metadata/eval_segments.csv" --audios_dir="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/eval_segments" --waveforms_hdf5_path="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s_mp3/waveforms/eval.h5"
+
+# Pack balanced training waveforms to a single hdf5 file
+python3 utils/dataset_mp3.py pack_waveforms_to_hdf5 --csv_path="/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/metadata/balanced_train_segments.csv" --audios_dir="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/balanced_train_segments" --waveforms_hdf5_path="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s_mp3/waveforms/balanced_train.h5"
+
+
+IDX="39"
+python3 utils/dataset_mp3.py pack_waveforms_to_hdf5 --csv_path="/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/metadata/unbalanced_partial_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/unbalanced_train_segments/unbalanced_train_segments_part$IDX" --waveforms_hdf5_path="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s_mp3/waveforms/unbalanced_train/unbalanced_train_part$IDX.h5"
