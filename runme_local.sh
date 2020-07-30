@@ -110,3 +110,16 @@ python3 utils/dataset_mp3.py pack_waveforms_to_hdf5 --csv_path="/mnt/cephfs_new_
 
 IDX="39"
 python3 utils/dataset_mp3.py pack_waveforms_to_hdf5 --csv_path="/mnt/cephfs_new_wj/speechsv/qiuqiang.kong/datasets/audioset/metadata/unbalanced_partial_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/datasets/audioset/audios_mp3/unbalanced_train_segments/unbalanced_train_segments_part$IDX" --waveforms_hdf5_path="/mnt/cephfs_new_wj/speechsv/kongqiuqiang/workspaces/cvssp/pub_audioset_tagging_cnn/hdf5s_mp3/waveforms/unbalanced_train/unbalanced_train_part$IDX.h5"
+
+python3 utils/create_indexes.py create_indexes --waveforms_hdf5_path=$WORKSPACE"/hdf5s_mp3/waveforms/eval.h5" --indexes_hdf5_path=$WORKSPACE"/hdf5s_mp3/indexes/eval.h5"
+
+python3 utils/create_indexes.py create_indexes --waveforms_hdf5_path=$WORKSPACE"/hdf5s_mp3/waveforms/balanced_train.h5" --indexes_hdf5_path=$WORKSPACE"/hdf5s_mp3/indexes/balanced_train.h5"
+
+for IDX in {00..40}; do
+    echo $IDX
+    python3 utils/create_indexes.py create_indexes --waveforms_hdf5_path=$WORKSPACE"/hdf5s_mp3/waveforms/unbalanced_train/unbalanced_train_part$IDX.h5" --indexes_hdf5_path=$WORKSPACE"/hdf5s_mp3/indexes/unbalanced_train/unbalanced_train_part$IDX.h5"
+done
+
+python3 utils/create_indexes.py combine_full_indexes --indexes_hdf5s_dir=$WORKSPACE"/hdf5s_mp3/indexes" --full_indexes_hdf5_path=$WORKSPACE"/hdf5s_mp3/indexes/full_train.h5"
+
+CUDA_VISIBLE_DEVICES=3 python3 pytorch/main_mp3.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
