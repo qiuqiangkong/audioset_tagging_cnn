@@ -93,7 +93,8 @@ def read_metadata(csv_path, classes_num, id_to_ix):
 
 
 def float32_to_int16(x):
-    assert np.max(np.abs(x)) <= 1.
+    assert np.max(np.abs(x)) <= 1.2
+    x = np.clip(x, -1, 1)
     return (x * 32767.).astype(np.int16)
 
 def int16_to_float32(x):
