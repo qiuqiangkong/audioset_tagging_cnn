@@ -61,7 +61,7 @@ python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --
 ####### HDFS
 
 HDFS_WORKSPACE='hdfs://haruna/home/byte_speech_sv/user/kongqiuqiang/workspaces/audioset_tagging'
-WORKSPACE="/root/workspaces/audioset_tagging"
+WORKSPACE="/home/tiger/workspaces/audioset_tagging"
 
 python3 utils/hdfs_dataset.py pack_waveforms_to_hdfs --csv_path=$DATASET_DIR"/metadata/eval_segments.csv" --audios_dir=$DATASET_DIR"/audios/eval_segments" --hdfs_path=$WORKSPACE"/hdfs/waveforms/eval"
 
@@ -122,4 +122,11 @@ done
 
 python3 utils/create_indexes.py combine_full_indexes --indexes_hdf5s_dir=$WORKSPACE"/hdf5s_mp3/indexes" --full_indexes_hdf5_path=$WORKSPACE"/hdf5s_mp3/indexes/full_train.h5"
 
-CUDA_VISIBLE_DEVICES=3 python3 pytorch/main_mp3.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
+WORKSPACE="/home/tiger/workspaces/audioset_tagging"
+
+CUDA_VISIBLE_DEVICES=3 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type='Cnn14_small' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=3000000 --cuda
+
+
+CUDA_VISIBLE_DEVICES=3 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000 --model_type='Cnn14_small_16k' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
+
+CUDA_VISIBLE_DEVICES=1 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --sample_rate=8000 --window_size=256 --hop_size=80 --mel_bins=64 --fmin=50 --fmax=4000 --model_type='Cnn14_8k' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
