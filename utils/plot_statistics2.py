@@ -20,7 +20,7 @@ def plot(args):
     select = args.select
     
     classes_num = config.classes_num
-    max_plot_iteration = 1000000
+    max_plot_iteration = 3000000
     iterations = np.arange(0, max_plot_iteration, 2000)
 
     class_labels_indices_path = os.path.join('metadata', 'class_labels_indices.csv')
@@ -85,11 +85,24 @@ def plot(args):
         line, = ax.plot(test_map, label='cnn14_8k', color='b', alpha=test_alpha)
         lines.append(line)
 
-        # (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
-        #     320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'alternate', 'mixup', 32)
-        # line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
-        # line, = ax.plot(test_map, label='cnn14', color='g', alpha=test_alpha)
-        # lines.append(line)
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'alternate', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='cnn14', color='g', alpha=test_alpha)
+        lines.append(line)
+
+    if select == '3b':
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_Transformer_pos', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='r', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn14_Transformer_pos', color='r', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Cnn14_Transformer_nopos', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Cnn14_Transformer_nopos', color='g', alpha=test_alpha)
+        lines.append(line)
         
 
     ax.set_ylim(0, 1.)

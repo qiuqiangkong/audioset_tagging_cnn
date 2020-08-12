@@ -50,11 +50,12 @@ class TransformerModel(nn.Module):
         # self.decoder.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src):
+        '''
         if self.src_mask is None or self.src_mask.size(0) != len(src):
             device = src.device
             mask = self._generate_square_subsequent_mask(len(src)).to(device)
             self.src_mask = mask
-
+        '''
         # src = self.encoder(src) * math.sqrt(self.ninp)
         if self.pos_enc:
         	src = self.pos_encoder(src)
@@ -100,15 +101,17 @@ class Cnn14_Transformer_pos(nn.Module):
         self.conv_block5 = ConvBlock(in_channels=512, out_channels=1024)
         self.conv_block6 = ConvBlock(in_channels=1024, out_channels=2048)
 
-        self.transformer = TransformerModel(ninp=2048, nhead=16, nhid=2048, nlayers=3, dropout=0.2, pos_enc=True)
+        self.fc0 = nn.Linear(2048, 512)
+        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=3, dropout=0.2, pos_enc=True)
 
-        self.fc1 = nn.Linear(2048, 2048, bias=True)
-        self.fc_audioset = nn.Linear(2048, classes_num, bias=True)
+        self.fc1 = nn.Linear(512, 512, bias=True)
+        self.fc_audioset = nn.Linear(512, classes_num, bias=True)
         
         self.init_weight()
 
     def init_weight(self):
         init_bn(self.bn0)
+        init_layer(self.fc0)
         init_layer(self.fc1)
         init_layer(self.fc_audioset)
  
@@ -145,7 +148,12 @@ class Cnn14_Transformer_pos(nn.Module):
         x = torch.mean(x, dim=3)
 
         x = x.transpose(1, 2)
+        x = self.fc0(x)
+
+        x = x.transpose(0, 1)
         x = self.transformer(x)
+        x = x.transpose(0, 1)
+        
         x = x.transpose(1, 2)
 
         (x1, _) = torch.max(x, dim=2)
@@ -197,15 +205,17 @@ class Cnn14_Transformer_nopos(nn.Module):
         self.conv_block5 = ConvBlock(in_channels=512, out_channels=1024)
         self.conv_block6 = ConvBlock(in_channels=1024, out_channels=2048)
 
-        self.transformer = TransformerModel(ninp=2048, nhead=16, nhid=2048, nlayers=3, dropout=0.2, pos_enc=False)
+        self.fc0 = nn.Linear(2048, 512)
+        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=3, dropout=0.2, pos_enc=True)
 
-        self.fc1 = nn.Linear(2048, 2048, bias=True)
-        self.fc_audioset = nn.Linear(2048, classes_num, bias=True)
+        self.fc1 = nn.Linear(512, 512, bias=True)
+        self.fc_audioset = nn.Linear(512, classes_num, bias=True)
         
         self.init_weight()
 
     def init_weight(self):
         init_bn(self.bn0)
+        init_layer(self.fc0)
         init_layer(self.fc1)
         init_layer(self.fc_audioset)
  
@@ -242,7 +252,12 @@ class Cnn14_Transformer_nopos(nn.Module):
         x = torch.mean(x, dim=3)
 
         x = x.transpose(1, 2)
+        x = self.fc0(x)
+
+        x = x.transpose(0, 1)
         x = self.transformer(x)
+        x = x.transpose(0, 1)
+        
         x = x.transpose(1, 2)
 
         (x1, _) = torch.max(x, dim=2)
