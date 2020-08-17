@@ -42,11 +42,12 @@ def audio_tagging(args):
     model.load_state_dict(checkpoint['model'])
 
     # Parallel
-    print('GPU number: {}'.format(torch.cuda.device_count()))
-    model = torch.nn.DataParallel(model)
-
     if 'cuda' in str(device):
         model.to(device)
+        print('GPU number: {}'.format(torch.cuda.device_count()))
+        model = torch.nn.DataParallel(model)
+    else:
+        print('Using CPU.')
     
     # Load audio
     (waveform, _) = librosa.core.load(audio_path, sr=sample_rate, mono=True)
