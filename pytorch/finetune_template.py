@@ -65,6 +65,7 @@ class Transfer_Cnn14(nn.Module):
 def train(args):
 
     # Arugments & parameters
+    sample_rate = args.sample_rate
     window_size = args.window_size
     hop_size = args.hop_size
     mel_bins = args.mel_bins
@@ -75,7 +76,6 @@ def train(args):
     freeze_base = args.freeze_base
     device = 'cuda' if (args.cuda and torch.cuda.is_available()) else 'cpu'
 
-    sample_rate = config.sample_rate
     classes_num = config.classes_num
     pretrain = True if pretrained_checkpoint_path else False
     
@@ -105,6 +105,7 @@ if __name__ == '__main__':
 
     # Train
     parser_train = subparsers.add_parser('train')
+    parser_train.add_argument('--sample_rate', type=int, required=True)
     parser_train.add_argument('--window_size', type=int, required=True)
     parser_train.add_argument('--hop_size', type=int, required=True)
     parser_train.add_argument('--mel_bins', type=int, required=True)
