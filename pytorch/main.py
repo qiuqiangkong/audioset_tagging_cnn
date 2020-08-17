@@ -21,7 +21,6 @@ from models import (Cnn14, Cnn14_no_specaug, Cnn14_no_dropout,
     Wavegram_Logmel128_Cnn14, Cnn14_16k, Cnn14_8k, Cnn14_mel32, Cnn14_mel128, 
     Cnn14_mixup_time_domain, Cnn14_DecisionLevelMax, Cnn14_DecisionLevelAtt, 
     Cnn14_small_16k)
-from models2 import *
 from pytorch_utils import (move_data_to_device, count_parameters, count_flops, 
     do_mixup)
 from data_generator import (AudioSetDataset, TrainSampler, BalancedTrainSampler, 
