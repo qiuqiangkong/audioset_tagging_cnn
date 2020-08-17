@@ -18,6 +18,7 @@ def audio_tagging(args):
     """
 
     # Arugments & parameters
+    sample_rate = args.sample_rate
     window_size = args.window_size
     hop_size = args.hop_size
     mel_bins = args.mel_bins
@@ -27,8 +28,7 @@ def audio_tagging(args):
     checkpoint_path = args.checkpoint_path
     audio_path = args.audio_path
     device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
-
-    sample_rate = config.sample_rate
+    
     classes_num = config.classes_num
     labels = config.labels
 
@@ -42,11 +42,12 @@ def audio_tagging(args):
     model.load_state_dict(checkpoint['model'])
 
     # Parallel
-    print('GPU number: {}'.format(torch.cuda.device_count()))
-    model = torch.nn.DataParallel(model)
-
     if 'cuda' in str(device):
         model.to(device)
+        print('GPU number: {}'.format(torch.cuda.device_count()))
+        model = torch.nn.DataParallel(model)
+    else:
+        print('Using CPU.')
     
     # Load audio
     (waveform, _) = librosa.core.load(audio_path, sr=sample_rate, mono=True)
@@ -82,6 +83,7 @@ def sound_event_detection(args):
     """
 
     # Arugments & parameters
+    sample_rate = args.sample_rate
     window_size = args.window_size
     hop_size = args.hop_size
     mel_bins = args.mel_bins
@@ -92,7 +94,6 @@ def sound_event_detection(args):
     audio_path = args.audio_path
     device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
 
-    sample_rate = config.sample_rate
     classes_num = config.classes_num
     labels = config.labels
     frames_per_second = sample_rate // hop_size
@@ -171,6 +172,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(dest='mode')
 
     parser_at = subparsers.add_parser('audio_tagging')
+    parser_at.add_argument('--sample_rate', type=int, default=32000)
     parser_at.add_argument('--window_size', type=int, default=1024)
     parser_at.add_argument('--hop_size', type=int, default=320)
     parser_at.add_argument('--mel_bins', type=int, default=64)
@@ -182,6 +184,7 @@ if __name__ == '__main__':
     parser_at.add_argument('--cuda', action='store_true', default=False)
 
     parser_sed = subparsers.add_parser('sound_event_detection')
+    parser_sed.add_argument('--sample_rate', type=int, default=32000)
     parser_sed.add_argument('--window_size', type=int, default=1024)
     parser_sed.add_argument('--hop_size', type=int, default=320)
     parser_sed.add_argument('--mel_bins', type=int, default=64)
