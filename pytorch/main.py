@@ -19,7 +19,9 @@ from models import (Cnn14, Cnn14_no_specaug, Cnn14_no_dropout,
     Cnn14_emb32, MobileNetV1, MobileNetV2, LeeNet11, LeeNet24, DaiNet19, 
     Res1dNet31, Res1dNet51, Wavegram_Cnn14, Wavegram_Logmel_Cnn14, 
     Wavegram_Logmel128_Cnn14, Cnn14_16k, Cnn14_8k, Cnn14_mel32, Cnn14_mel128, 
-    Cnn14_mixup_time_domain, Cnn14_DecisionLevelMax, Cnn14_DecisionLevelAtt)
+    Cnn14_mixup_time_domain, Cnn14_DecisionLevelMax, Cnn14_DecisionLevelAtt, 
+    Cnn14_small_16k)
+from models2 import *
 from pytorch_utils import (move_data_to_device, count_parameters, count_flops, 
     do_mixup)
 from data_generator import (AudioSetDataset, TrainSampler, BalancedTrainSampler, 
@@ -54,6 +56,7 @@ def train(args):
     # Arugments & parameters
     workspace = args.workspace
     data_type = args.data_type
+    sample_rate = args.sample_rate
     window_size = args.window_size
     hop_size = args.hop_size
     mel_bins = args.mel_bins
@@ -71,7 +74,6 @@ def train(args):
     filename = args.filename
 
     num_workers = 8
-    sample_rate = config.sample_rate
     clip_samples = config.clip_samples
     classes_num = config.classes_num
     loss_func = get_loss_func(loss_type)
@@ -135,7 +137,7 @@ def train(args):
     
     # Dataset will be used by DataLoader later. Dataset takes a meta as input 
     # and return a waveform and a target.
-    dataset = AudioSetDataset(clip_samples=clip_samples, classes_num=classes_num)
+    dataset = AudioSetDataset(sample_rate=sample_rate)
 
     # Train sampler
     if balanced == 'none':
@@ -251,7 +253,7 @@ def train(args):
             train_bgn_time = time.time()
         
         # Save model
-        if iteration % 20000 == 0:
+        if iteration % 100000 == 0:
             checkpoint = {
                 'iteration': iteration, 
                 'model': model.module.state_dict(), 
@@ -305,11 +307,11 @@ def train(args):
                 .format(iteration, time.time() - time1))
             time1 = time.time()
         
-        iteration += 1
-
         # Stop learning
         if iteration == early_stop:
             break
+
+        iteration += 1
         
 
 if __name__ == '__main__':
@@ -320,6 +322,7 @@ if __name__ == '__main__':
     parser_train = subparsers.add_parser('train') 
     parser_train.add_argument('--workspace', type=str, required=True)
     parser_train.add_argument('--data_type', type=str, default='full_train', choices=['balanced_train', 'full_train'])
+    parser_train.add_argument('--sample_rate', type=int, default=32000)
     parser_train.add_argument('--window_size', type=int, default=1024)
     parser_train.add_argument('--hop_size', type=int, default=320)
     parser_train.add_argument('--mel_bins', type=int, default=64)
