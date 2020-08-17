@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 
 ## Audio tagging using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3987831, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
 ```
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
@@ -139,7 +139,7 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
-<img src="resources/results_figure.png">
+<img src="resources/six_figures.png">
 
 Results of PANNs on AudioSet tagging. Dash and solid lines are training mAP and evaluation mAP, respectively. The six plots show the results with different: (a) architectures; (b) data balancing and data augmentation; (c) embedding size; (d) amount of training data; (e) sampling rate; (f) number of mel bins.
 
@@ -147,8 +147,18 @@ Results of PANNs on AudioSet tagging. Dash and solid lines are training mAP and 
 
 <img src="resources/mAP_table.png" width=400>
 
-Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
+Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.
 
+## Plot figures of [1]
+To reproduce all figures of [1], just do:
+```
+wget -O paper_statistics.zip https://zenodo.org/record/3987831/files/paper_statistics.zip?download=1
+unzip paper_statistics.zip
+python3 utils/plot_for_paper.py plot_classwise_iteration_map
+python3 utils/plot_for_paper.py plot_six_figures
+python3 utils/plot_for_paper.py plot_complexity_map
+python3 utils/plot_for_paper.py plot_long_fig
+```
 
 ## Fine-tune on new tasks
 After downloading the pretrained models. Build fine-tuned systems for new tasks is simple!
@@ -180,4 +190,3 @@ If users came across out of memory error, then try to reduce the batch size.
 Other work on music transfer learning includes: <br>
 https://github.com/jordipons/sklearn-audio-transfer-learning <br>
 https://github.com/keunwoochoi/transfer_learning_music
-
