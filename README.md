@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 
 ## Audio tagging using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
+Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3987831, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
 ```
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
@@ -29,6 +29,13 @@ Alarm: 0.014
 Animal: 0.009
 Vehicle: 0.008
 embedding: (2048,)
+```
+
+If users would like to use 16 kHz model for inference, just do:
+```
+MODEL_TYPE="Cnn14_16k"
+CHECKPOINT_PATH="Cnn14_16k_mAP=0.438.pth"   # Trained by a later version of code, achieves higher mAP than the paper.
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path='resources/R9_ZSCveAHg_7s.wav' --cuda
 ```
 
 ## Sound event detection using pretrained models
@@ -51,7 +58,7 @@ pip install panns_inference
 
 Please visit https://github.com/qiuqiangkong/panns_inference for details of panns_inference.
 
-## Train PANNs from scrratch
+## Train PANNs from scratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
 
 ## 1. Download dataset
@@ -132,7 +139,7 @@ Model saved to /workspaces/pub_audioset_tagging_cnn_transfer/checkpoints/main/sa
 
 An **mean average precision (mAP)** of **0.431** is obtained. The training curve looks like:
 
-<img src="resources/results_figure.png">
+<img src="resources/six_figures.png">
 
 Results of PANNs on AudioSet tagging. Dash and solid lines are training mAP and evaluation mAP, respectively. The six plots show the results with different: (a) architectures; (b) data balancing and data augmentation; (c) embedding size; (d) amount of training data; (e) sampling rate; (f) number of mel bins.
 
@@ -140,8 +147,18 @@ Results of PANNs on AudioSet tagging. Dash and solid lines are training mAP and 
 
 <img src="resources/mAP_table.png" width=400>
 
-Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.  
+Top rows show the previously proposed methods using embedding features provided by Google. Previous best system achieved an mAP of 0.369 using large feature-attention neural networks. We propose to train neural networks directly from audio recordings. Our CNN14 achieves an mAP of 0.431, and Wavegram-Logmel-CNN achieves an mAP of 0.439.
 
+## Plot figures of [1]
+To reproduce all figures of [1], just do:
+```
+wget -O paper_statistics.zip https://zenodo.org/record/3987831/files/paper_statistics.zip?download=1
+unzip paper_statistics.zip
+python3 utils/plot_for_paper.py plot_classwise_iteration_map
+python3 utils/plot_for_paper.py plot_six_figures
+python3 utils/plot_for_paper.py plot_complexity_map
+python3 utils/plot_for_paper.py plot_long_fig
+```
 
 ## Fine-tune on new tasks
 After downloading the pretrained models. Build fine-tuned systems for new tasks is simple!
@@ -149,7 +166,7 @@ After downloading the pretrained models. Build fine-tuned systems for new tasks 
 ```
 MODEL_TYPE="Transfer_Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --sample_rate=32000 --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
 ```
 
 Here is an example of fine-tuning PANNs to GTZAN music classification: https://github.com/qiuqiangkong/panns_transfer_to_gtzan
@@ -173,4 +190,3 @@ If users came across out of memory error, then try to reduce the batch size.
 Other work on music transfer learning includes: <br>
 https://github.com/jordipons/sklearn-audio-transfer-learning <br>
 https://github.com/keunwoochoi/transfer_learning_music
-
