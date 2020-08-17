@@ -23,7 +23,7 @@ class PositionalEncoding(nn.Module):
 
 class TransformerModel(nn.Module):
 
-    def __init__(self, ninp, nhead, nhid, nlayers, dropout=0.2, pos_enc=True):
+    def __init__(self, ninp, nhead, nhid, nlayers, dropout=0., pos_enc=True):
         super(TransformerModel, self).__init__()
         from torch.nn import TransformerEncoder, TransformerEncoderLayer
         self.model_type = 'Transformer'
@@ -57,8 +57,8 @@ class TransformerModel(nn.Module):
             self.src_mask = mask
         '''
         # src = self.encoder(src) * math.sqrt(self.ninp)
-        if self.pos_enc:
-        	src = self.pos_encoder(src)
+        # if self.pos_enc:
+        # 	src = self.pos_encoder(src)
 
         output = self.transformer_encoder(src, self.src_mask)
         # output = self.decoder(output)
@@ -102,7 +102,7 @@ class Cnn14_Transformer_pos(nn.Module):
         self.conv_block6 = ConvBlock(in_channels=1024, out_channels=2048)
 
         self.fc0 = nn.Linear(2048, 512)
-        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=3, dropout=0.2, pos_enc=True)
+        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=2, dropout=0.2, pos_enc=True)
 
         self.fc1 = nn.Linear(512, 512, bias=True)
         self.fc_audioset = nn.Linear(512, classes_num, bias=True)
@@ -206,7 +206,7 @@ class Cnn14_Transformer_nopos(nn.Module):
         self.conv_block6 = ConvBlock(in_channels=1024, out_channels=2048)
 
         self.fc0 = nn.Linear(2048, 512)
-        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=3, dropout=0.2, pos_enc=True)
+        self.transformer = TransformerModel(ninp=512, nhead=8, nhid=512, nlayers=1, dropout=0.0, pos_enc=False)
 
         self.fc1 = nn.Linear(512, 512, bias=True)
         self.fc_audioset = nn.Linear(512, classes_num, bias=True)

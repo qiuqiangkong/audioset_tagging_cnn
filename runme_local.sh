@@ -131,7 +131,16 @@ CUDA_VISIBLE_DEVICES=3 python3 pytorch/main.py train --workspace=$WORKSPACE --da
 
 CUDA_VISIBLE_DEVICES=1 python3 pytorch/main.py train --workspace=$WORKSPACE --data_type='full_train' --sample_rate=8000 --window_size=256 --hop_size=80 --mel_bins=64 --fmin=50 --fmax=4000 --model_type='Cnn14_8k' --loss_type='clip_bce' --balanced='balanced' --augmentation='mixup' --batch_size=32 --learning_rate=1e-3 --resume_iteration=0 --early_stop=1000000 --cuda
 
+CUDA_VISIBLE_DEVICES=3 python3 pytorch/inference.py audio_tagging --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000 --model_type='Cnn14_16k' --checkpoint_path='/home/tiger/workspaces/audioset_tagging/checkpoints/main/sample_rate=16000,window_size=512,hop_size=160,mel_bins=64,fmin=50,fmax=8000/data_type=full_train/Cnn14_16k/loss_type=clip_bce/balanced=balanced/augmentation=mixup/batch_size=32/900000_iterations.pth' --audio_path='resources/R9_ZSCveAHg_7s.wav' --cuda
+
+CUDA_VISIBLE_DEVICES=3 python3 pytorch/inference.py audio_tagging --sample_rate=8000 --window_size=256 --hop_size=80 --mel_bins=64 --fmin=50 --fmax=4000 --model_type='Cnn14_8k' --checkpoint_path='/home/tiger/workspaces/audioset_tagging/checkpoints/main/sample_rate=8000,window_size=256,hop_size=80,mel_bins=64,fmin=50,fmax=4000/data_type=full_train/Cnn14_8k/loss_type=clip_bce/balanced=balanced/augmentation=mixup/batch_size=32/900000_iterations.pth' --audio_path='resources/R9_ZSCveAHg_7s.wav' --cuda
+
 python3 utils/plot_statistics2.py plot --workspace=$WORKSPACE --select=3a
 
 CHECKPOINT_PATH="/home/tiger/workspaces/audioset_tagging/checkpoints/main/sample_rate=16000,window_size=512,hop_size=160,mel_bins=64,fmin=50,fmax=8000/data_type=full_train/Cnn14_16k/loss_type=clip_bce/balanced=balanced/augmentation=mixup/batch_size=32/200000_iterations.pth"
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --model_type=Cnn14_16k --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000
+
+python3 utils/plot_for_paper.py plot_classwise_iteration_map
+python3 utils/plot_for_paper.py plot_six_figures
+python3 utils/plot_for_paper.py plot_complexity_map
+python3 utils/plot_for_paper.py plot_long_fig

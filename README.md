@@ -31,6 +31,13 @@ Vehicle: 0.008
 embedding: (2048,)
 ```
 
+If users would like to use 16 kHz model for inference, just do:
+```
+MODEL_TYPE="Cnn14_16k"
+CHECKPOINT_PATH="Cnn14_16k_mAP=0.438.pth"   # Trained by a later version of code, achieves higher mAP than the paper.
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path='resources/R9_ZSCveAHg_7s.wav' --cuda
+```
+
 ## Sound event detection using pretrained models
 Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
 ```
@@ -51,7 +58,7 @@ pip install panns_inference
 
 Please visit https://github.com/qiuqiangkong/panns_inference for details of panns_inference.
 
-## Train PANNs from scrratch
+## Train PANNs from scratch
 Users can train PANNs from scratch by executing the commands in runme.sh. The runme.sh consists of three parts. 1. Download the full dataset. 2. Pack downloaded wavs to hdf5 file to speed up loading. 3. Train PANNs. 
 
 ## 1. Download dataset
@@ -149,7 +156,7 @@ After downloading the pretrained models. Build fine-tuned systems for new tasks 
 ```
 MODEL_TYPE="Transfer_Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/finetune_template.py train --sample_rate=32000 --window_size=1024 --hop_size=320 --mel_bins=64 --fmin=50 --fmax=14000 --model_type=$MODEL_TYPE --pretrained_checkpoint_path=$CHECKPOINT_PATH --cuda
 ```
 
 Here is an example of fine-tuning PANNs to GTZAN music classification: https://github.com/qiuqiangkong/panns_transfer_to_gtzan
