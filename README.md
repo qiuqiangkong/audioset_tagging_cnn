@@ -11,8 +11,9 @@ pip install -r requirements.txt
 ## Audio tagging using pretrained models
 Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3987831, for example, the model named "Cnn14_mAP=0.431.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
 ```
-MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
+wget -O $CHECKPOINT_PATH https://zenodo.org/record/3987831/files/Cnn14_mAP%3D0.431.pth?download=1
+MODEL_TYPE="Cnn14"
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda
 ```
 
@@ -33,16 +34,27 @@ embedding: (2048,)
 
 If users would like to use 16 kHz model for inference, just do:
 ```
+CHECKPOINT_PATH="Cnn14_16k_mAP=0.438.pth"   # Trained by a later code version, achieves higher mAP than the paper.
+wget -O $CHECKPOINT_PATH https://zenodo.org/record/3987831/files/Cnn14_16k_mAP%3D0.438.pth?download=1
 MODEL_TYPE="Cnn14_16k"
-CHECKPOINT_PATH="Cnn14_16k_mAP=0.438.pth"   # Trained by a later version of code, achieves higher mAP than the paper.
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --sample_rate=16000 --window_size=512 --hop_size=160 --mel_bins=64 --fmin=50 --fmax=8000 --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path='resources/R9_ZSCveAHg_7s.wav' --cuda
 ```
 
-## Sound event detection using pretrained models
-Users can inference the tags of an audio recording using pretrained models without training. First, downloaded one pretrained model from https://zenodo.org/record/3960586, for example, the model named "Cnn14_DecisionLevelMax_mAP=0.385.pth". Then, execute the following commands to inference this [audio](resources/R9_ZSCveAHg_7s.wav):
+If users would like to use 8 kHz model for inference, just do:
 ```
-MODEL_TYPE="Cnn14_DecisionLevelMax"
+CHECKPOINT_PATH="Cnn14_8k_mAP=0.416.pth"   # Trained by a later code version, achieves higher mAP than the paper.
+wget -O $CHECKPOINT_PATH https://zenodo.org/record/3987831/files/Cnn14_8k_mAP%3D0.416.pth?download=1
+MODEL_TYPE="Cnn14_8k"
+CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py audio_tagging --sample_rate=8000 --window_size=256 --hop_size=80 --mel_bins=64 --fmin=50 --fmax=4000 --model_type=Cnn14_8k --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda
+```
+
+## Sound event detection using pretrained models
+Some of PANNs (DecisionLevelMax, DecisionLevelAvg, DecisionLevelAtt) can be used for frame-wise sound event detection. For example, execute the following commands to inference sound event detection results on this [audio](resources/R9_ZSCveAHg_7s.wav):
+
+```
 CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
+wget -O $CHECKPOINT_PATH https://zenodo.org/record/3987831/files/Cnn14_DecisionLevelMax_mAP%3D0.385.pth?download=1
+MODEL_TYPE="Cnn14_DecisionLevelMax"
 CUDA_VISIBLE_DEVICES=0 python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda
 ```
 
