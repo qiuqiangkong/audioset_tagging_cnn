@@ -79,6 +79,12 @@ def plot(args):
         line, = ax.plot(test_map, label='cnn14_small_16k', color='k', alpha=test_alpha)
         lines.append(line)
 
+        # (bal_map, test_map, legend) = _load_metrics('main', 16000, 512, 
+        #     160, 64, 50, 8000, 'full_train', 'Cnn14_small_16k', 'clip_bce', 'balanced', 'mixup', 32)
+        # line, = ax.plot(bal_map, color='k', alpha=bal_alpha)
+        # line, = ax.plot(test_map, label='cnn14_small_16k', color='k', alpha=test_alpha)
+        # lines.append(line)
+
         (bal_map, test_map, legend) = _load_metrics('main', 8000, 256, 
             80, 64, 50, 4000, 'full_train', 'Cnn14_8k', 'clip_bce', 'balanced', 'mixup', 32)
         line, = ax.plot(bal_map, color='b', alpha=bal_alpha)
@@ -88,7 +94,19 @@ def plot(args):
         (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
             320, 64, 50, 14000, 'full_train', 'Cnn14', 'clip_bce', 'alternate', 'mixup', 32)
         line, = ax.plot(bal_map, color='g', alpha=bal_alpha)
-        line, = ax.plot(test_map, label='cnn14', color='g', alpha=test_alpha)
+        line, = ax.plot(test_map, label='cnn14, alternate', color='g', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 64, 50, 14000, 'full_train', 'Wavegram_Logmel_Cnn14', 'clip_bce', 'balanced', 'mixup', 32)
+        line, = ax.plot(bal_map, color='y', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Wavegram_Logmel_Cnn14', color='y', alpha=test_alpha)
+        lines.append(line)
+
+        (bal_map, test_map, legend) = _load_metrics('main', 32000, 1024, 
+            320, 128, 50, 14000, 'full_train', 'Wavegram_Logmel128_Cnn14', 'clip_bce', 'alternate', 'mixup', 32)
+        line, = ax.plot(bal_map, color='m', alpha=bal_alpha)
+        line, = ax.plot(test_map, label='Wavegram_Logmel128_Cnn14, alternate', color='m', alpha=test_alpha)
         lines.append(line)
 
     if select == '3b':
