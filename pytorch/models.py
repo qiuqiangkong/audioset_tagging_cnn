@@ -188,7 +188,7 @@ class Cnn14(nn.Module):
 
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
-        
+
         x = x.transpose(1, 3)
         x = self.bn0(x)
         x = x.transpose(1, 3)
@@ -2540,10 +2540,16 @@ class Wavegram_Logmel128_Cnn14(nn.Module):
 
 
 class Cnn14_16k(nn.Module):
-    def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, 
-        fmax, classes_num):
+    def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, fmax, classes_num):
         
         super(Cnn14_16k, self).__init__() 
+
+        assert sample_rate == 16000
+        assert window_size == 512
+        assert hop_size == 160
+        assert mel_bins == 64
+        assert fmin == 50
+        assert fmax == 8000
 
         window = 'hann'
         center = True
@@ -2551,11 +2557,6 @@ class Cnn14_16k(nn.Module):
         ref = 1.0
         amin = 1e-10
         top_db = None
-
-        sample_rate = int(sample_rate // 2)
-        window_size = int(window_size // 2)
-        hop_size = int(hop_size // 2)
-        fmax = int(fmax // 2)
 
         # Spectrogram extractor
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
@@ -2593,7 +2594,6 @@ class Cnn14_16k(nn.Module):
     def forward(self, input, mixup_lambda=None):
         """
         Input: (batch_size, data_length)"""
-        input = input[:, 0 :: 2]
 
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
@@ -2637,10 +2637,16 @@ class Cnn14_16k(nn.Module):
 
 
 class Cnn14_8k(nn.Module):
-    def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, 
-        fmax, classes_num):
+    def __init__(self, sample_rate, window_size, hop_size, mel_bins, fmin, fmax, classes_num):
         
         super(Cnn14_8k, self).__init__() 
+
+        assert sample_rate == 8000
+        assert window_size == 256
+        assert hop_size == 80
+        assert mel_bins == 64
+        assert fmin == 50
+        assert fmax == 4000
 
         window = 'hann'
         center = True
@@ -2648,11 +2654,6 @@ class Cnn14_8k(nn.Module):
         ref = 1.0
         amin = 1e-10
         top_db = None
-
-        sample_rate = int(sample_rate // 4)
-        window_size = int(window_size // 4)
-        hop_size = int(hop_size // 4)
-        fmax = int(fmax // 4)
 
         # Spectrogram extractor
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
@@ -2690,7 +2691,6 @@ class Cnn14_8k(nn.Module):
     def forward(self, input, mixup_lambda=None):
         """
         Input: (batch_size, data_length)"""
-        input = input[:, 0 :: 4]
 
         x = self.spectrogram_extractor(input)   # (batch_size, 1, time_steps, freq_bins)
         x = self.logmel_extractor(x)    # (batch_size, 1, time_steps, mel_bins)
@@ -2698,7 +2698,7 @@ class Cnn14_8k(nn.Module):
         x = x.transpose(1, 3)
         x = self.bn0(x)
         x = x.transpose(1, 3)
-
+        
         if self.training:
             x = self.spec_augmenter(x)
 
