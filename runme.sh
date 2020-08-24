@@ -7,14 +7,14 @@ WORKSPACE="./workspaces/audioset_tagging"
 # Inference audio tagging with pretrained model
 MODEL_TYPE="Cnn14"
 CHECKPOINT_PATH="Cnn14_mAP=0.431.pth"
-wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3960586/files/Cnn14_mAP%3D0.431.pth?download=1"
-python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
+wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3987831/files/Cnn14_mAP%3D0.431.pth?download=1"
+python3 pytorch/inference.py audio_tagging --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda
 
 # Inference sound event detection with pretrained model
 MODEL_TYPE="Cnn14_DecisionLevelMax"
 CHECKPOINT_PATH="Cnn14_DecisionLevelMax_mAP=0.385.pth"
-wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3960586/files/Cnn14_DecisionLevelMax_mAP%3D0.385.pth?download=1"
-python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="examples/R9_ZSCveAHg_7s.wav" --cuda
+wget -O $CHECKPOINT_PATH "https://zenodo.org/record/3987831/files/Cnn14_DecisionLevelMax_mAP%3D0.385.pth?download=1"
+python3 pytorch/inference.py sound_event_detection --model_type=$MODEL_TYPE --checkpoint_path=$CHECKPOINT_PATH --audio_path="resources/R9_ZSCveAHg_7s.wav" --cuda
 
 # ============ Download dataset ============
 echo "------ Download metadata ------"
@@ -50,7 +50,7 @@ python3 utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/balance
 # one command in one terminal.
 for IDX in {00..40}; do
   echo $IDX
-  python utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/unbalanced_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir=$DATASET_DIR"/audios/unbalanced_train_segments/unbalanced_train_segments_part$IDX"
+  python utils/dataset.py download_wavs --csv_path=$DATASET_DIR"/metadata/unbalanced_partial_csvs/unbalanced_train_segments_part$IDX.csv" --audios_dir=$DATASET_DIR"/audios/unbalanced_train_segments/unbalanced_train_segments_part$IDX"
 done
 
 # ============ Pack waveform and target to hdf5 ============
