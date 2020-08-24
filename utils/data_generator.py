@@ -19,11 +19,11 @@ def read_black_list(black_list_csv):
 
 
 class AudioSetDataset(object):
-    def __init__(self, clip_samples, classes_num):
+    def __init__(self, sample_rate=32000):
         """This class takes the meta of an audio clip as input, and return 
         the waveform and target of the audio clip. This class is used by DataLoader. 
         """
-        pass
+        self.sample_rate = sample_rate
     
     def __getitem__(self, meta):
         """Load waveform and target of an audio clip.
@@ -45,12 +45,31 @@ class AudioSetDataset(object):
         with h5py.File(hdf5_path, 'r') as hf:
             audio_name = hf['audio_name'][index_in_hdf5].decode()
             waveform = int16_to_float32(hf['waveform'][index_in_hdf5])
+            waveform = self.resample(waveform)
             target = hf['target'][index_in_hdf5].astype(np.float32)
 
         data_dict = {
             'audio_name': audio_name, 'waveform': waveform, 'target': target}
             
         return data_dict
+
+    def resample(self, waveform):
+        """Resample.
+
+        Args:
+          waveform: (clip_samples,)
+
+        Returns:
+          (resampled_clip_samples,)
+        """
+        if self.sample_rate == 32000:
+            return waveform
+        elif self.sample_rate == 16000:
+            return waveform[0 :: 2]
+        elif self.sample_rate == 8000:
+            return waveform[0 :: 4]
+        else:
+            raise Exception('Incorrect sample rate!')
 
 
 class Base(object):
