@@ -72,6 +72,8 @@ def train(args):
     filename = args.filename
 
     num_workers = 8
+    prefetch_factor = 4
+    
     clip_samples = config.clip_samples
     classes_num = config.classes_num
     loss_func = get_loss_func(loss_type)
@@ -160,15 +162,15 @@ def train(args):
     # Data loader
     train_loader = torch.utils.data.DataLoader(dataset=dataset, 
         batch_sampler=train_sampler, collate_fn=collate_fn, 
-        num_workers=num_workers, pin_memory=True)
+        num_workers=num_workers, pin_memory=True, prefetch_factor=prefetch_factor)
     
     eval_bal_loader = torch.utils.data.DataLoader(dataset=dataset, 
         batch_sampler=eval_bal_sampler, collate_fn=collate_fn, 
-        num_workers=num_workers, pin_memory=True)
+        num_workers=num_workers, pin_memory=True, prefetch_factor=prefetch_factor)
 
     eval_test_loader = torch.utils.data.DataLoader(dataset=dataset, 
         batch_sampler=eval_test_sampler, collate_fn=collate_fn, 
-        num_workers=num_workers, pin_memory=True)
+        num_workers=num_workers, pin_memory=True, prefetch_factor=prefetch_factor)
 
     if 'mixup' in augmentation:
         mixup_augmenter = Mixup(mixup_alpha=1.)
