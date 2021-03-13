@@ -3,6 +3,7 @@ import h5py
 import csv
 import time
 import logging
+import torch
 
 from utilities import int16_to_float32
 
@@ -18,7 +19,7 @@ def read_black_list(black_list_csv):
     return black_list_names
 
 
-class AudioSetDataset(object):
+class AudioSetDataset(torch.utils.data.Dataset):
     def __init__(self, sample_rate=32000):
         """This class takes the meta of an audio clip as input, and return 
         the waveform and target of the audio clip. This class is used by DataLoader. 
@@ -70,6 +71,9 @@ class AudioSetDataset(object):
             return waveform[0 :: 4]
         else:
             raise Exception('Incorrect sample rate!')
+    
+    def __len__(self):
+        return len(hf['audio_name'])
 
 
 class Base(object):
@@ -417,6 +421,8 @@ def collate_fn(list_data_dict):
     np_data_dict = {}
     
     for key in list_data_dict[0].keys():
-        np_data_dict[key] = np.array([data_dict[key] for data_dict in list_data_dict])
+        if key == "audio_name":
+            continue
+        np_data_dict[key] = torch.tensor([data_dict[key] for data_dict in list_data_dict])
     
     return np_data_dict
