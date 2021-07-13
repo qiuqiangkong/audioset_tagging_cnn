@@ -137,7 +137,7 @@ workspace
 ## 3. Create training indexes
 The [scripts/3_create_training_indexes.sh](scripts/3_create_training_indexes.sh) is used for creating training indexes. Those indexes are used for sampling mini-batches.
 
-## 3. Train
+## 4. Train
 The [scripts/4_train.sh](scripts/4_train.sh) script contains training, saving checkpoints, and evaluation.
 
 ```
