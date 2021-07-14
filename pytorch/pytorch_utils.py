@@ -128,6 +128,8 @@ def pad_framewise_output(framewise_output, frames_num):
     Outputs:
       output: (batch_size, frames_num, classes_num)
     """
+    if frames_num == framewise_output.shape[1]:
+        return framewise_output 
     pad = framewise_output[:, -1 :, :].repeat(1, frames_num - framewise_output.shape[1], 1)
     """tensor for padding"""
 
