@@ -9,6 +9,13 @@ import logging
 import h5py
 import librosa
 
+from joblib import Parallel, delayed
+from mpi4py import MPI
+from tqdm import tqdm
+
+rank = MPI.COMM_WORLD.Get_rank()
+size = MPI.COMM_WORLD.Get_size()
+
 from utilities import (create_folder, get_filename, create_logging, 
     float32_to_int16, pad_or_truncate, read_metadata)
 import config
@@ -165,14 +172,14 @@ def pack_waveforms_to_hdf5(args):
     # Pack waveform to hdf5
     total_time = time.time()
 
-    with h5py.File(waveforms_hdf5_path, 'w') as hf:
+    with h5py.File(waveforms_hdf5_path, 'w', driver="mpio", comm=MPI.COMM_WORLD) as hf:
         hf.create_dataset('audio_name', shape=((audios_num,)), dtype='S20')
         hf.create_dataset('waveform', shape=((audios_num, clip_samples)), dtype=np.int16)
         hf.create_dataset('target', shape=((audios_num, classes_num)), dtype=np.bool)
         hf.attrs.create('sample_rate', data=sample_rate, dtype=np.int32)
 
         # Pack waveform & target of several audio clips to a single hdf5 file
-        for n in range(audios_num):
+        def f(n):
             audio_path = os.path.join(audios_dir, meta_dict['audio_name'][n])
 
             if os.path.isfile(audio_path):
@@ -185,6 +192,10 @@ def pack_waveforms_to_hdf5(args):
                 hf['target'][n] = meta_dict['target'][n]
             else:
                 logging.info('{} File does not exist! {}'.format(n, audio_path))
+        
+        for n in tqdm(range(audios_num)):
+            if n % size != rank: continue
+            f(n)
 
     logging.info('Write to {}'.format(waveforms_hdf5_path))
     logging.info('Pack hdf5 time: {:.3f}'.format(time.time() - total_time))
