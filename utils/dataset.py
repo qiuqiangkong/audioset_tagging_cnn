@@ -92,7 +92,7 @@ def download_wavs(args):
         
         # Download full video of whatever format
         video_name = os.path.join(audios_dir, '_Y{}.%(ext)s'.format(audio_id))
-        os.system("youtube-dl --quiet -o '{}' -x https://www.youtube.com/watch?v={}"\
+        os.system("yt-dlp --quiet -o '{}' -x https://www.youtube.com/watch?v={}"\
             .format(video_name, audio_id))
 
         video_paths = glob.glob(os.path.join(audios_dir, '_Y' + audio_id + '.*'))
