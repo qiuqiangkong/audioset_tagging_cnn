@@ -232,6 +232,8 @@ class BalancedTrainSampler(Base):
                 class_id = self.queue.pop(0)
                 pointer = self.pointers_of_classes[class_id]
                 self.pointers_of_classes[class_id] += 1
+                if not (len(self.indexes_per_class[class_id]) > 0):
+                    continue
                 index = self.indexes_per_class[class_id][pointer]
                 
                 # When finish one epoch of a sound class, then shuffle its indexes and reset pointer
